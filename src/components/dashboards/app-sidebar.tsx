@@ -58,7 +58,6 @@ export function AppSidebar() {
               {items.map((item, idx) => {
                 // Hardcoded notification numbers
                 let notification = null;
-                if (item.title === "Services") notification = 3;
                 if (item.title === "Bookings") notification = 4;
                 return (
                   <SidebarMenuItem key={item.title + '-' + idx}>

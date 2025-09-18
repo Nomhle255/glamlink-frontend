@@ -1,7 +1,6 @@
 "use client";
 import React, { useState } from "react";
 
-
 export default function BookingsPage() {
   // Hardcoded bookings data
   const bookings = [
@@ -55,14 +54,29 @@ export default function BookingsPage() {
     return "Good evening,";
   })();
 
+  // Reschedule modal state
+  const [rescheduleBookingId, setRescheduleBookingId] = useState<number | null>(null);
+  const [selectedDate, setSelectedDate] = useState<string>("");
+  const [selectedTime, setSelectedTime] = useState<string>("");
+
+  // Handlers
+  const handleCancelReschedule = () => {
+    setRescheduleBookingId(null);
+    setSelectedDate("");
+    setSelectedTime("");
+  };
+
+  const handleSaveReschedule = () => {
+    // Logic to save the rescheduled date and time
+    handleCancelReschedule();
+  };
+
   return (
     <div className="p-6">
-        {/* Greeting */}
+      {/* Greeting */}
       <div className="mb-6 p-4 bg-pink-500 rounded shadow text-white">
         <h2 className="text-lg font-bold">{greeting} Welcome to GlamLink!</h2>
-        <p className="text-gray-700">
-          View and manage your bookings below.
-        </p>
+        <p className="text-gray-700">View and manage your bookings below.</p>
       </div>
       <h1 className="text-2xl font-bold mb-6">Bookings</h1>
       {/* Tabs */}
@@ -90,7 +104,9 @@ export default function BookingsPage() {
             className="bg-white rounded-xl shadow p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3 hover:bg-pink-50 transition"
           >
             <div className="flex-1">
-              <div className="font-bold text-lg text-pink-600 mb-1">{b.service}</div>
+              <div className="font-bold text-lg text-pink-600 mb-1">
+                {b.service}
+              </div>
               <div className="text-gray-700 mb-1">
                 <span className="font-medium">Client:</span> {b.client}
               </div>
@@ -99,15 +115,17 @@ export default function BookingsPage() {
               </div>
               <div className="mb-1">
                 <span className="font-medium">Status:</span>
-                <span className={`ml-2 px-2 py-0.5 rounded text-sm ${
-                  b.status === "Confirmed"
-                    ? "bg-green-100 text-green-800"
-                    : b.status === "Rescheduled"
-                    ? "bg-blue-100 text-blue-800"
-                    : b.status === "Pending"
-                    ? "bg-yellow-100 text-yellow-800"
-                    : "bg-gray-100 text-gray-700"
-                }`}>
+                <span
+                  className={`ml-2 px-2 py-0.5 rounded text-sm ${
+                    b.status === "Confirmed"
+                      ? "bg-green-100 text-green-800"
+                      : b.status === "Rescheduled"
+                      ? "bg-blue-100 text-blue-800"
+                      : b.status === "Pending"
+                      ? "bg-yellow-100 text-yellow-800"
+                      : "bg-gray-100 text-gray-700"
+                  }`}
+                >
                   {b.status}
                 </span>
               </div>
@@ -122,6 +140,7 @@ export default function BookingsPage() {
               <button
                 className="bg-blue-100 text-blue-700 px-3 py-1 rounded hover:bg-blue-200 font-medium disabled:opacity-50"
                 disabled={b.status === "Confirmed"}
+                onClick={() => setRescheduleBookingId(b.id)}
               >
                 Reschedule
               </button>
@@ -133,7 +152,9 @@ export default function BookingsPage() {
               </button>
               <button
                 className="bg-gray-200 text-gray-700 px-3 py-1 rounded hover:bg-gray-300 font-medium disabled:opacity-50"
-                disabled={!(b.status === "Confirmed" || b.status === "Rescheduled")}
+                disabled={
+                  !(b.status === "Confirmed" || b.status === "Rescheduled")
+                }
               >
                 Complete
               </button>
@@ -141,6 +162,47 @@ export default function BookingsPage() {
           </div>
         ))}
       </div>
+
+      {/* Reschedule Modal */}
+      {rescheduleBookingId !== null && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded shadow w-80">
+            <h3 className="text-lg font-bold mb-4">Reschedule Booking</h3>
+            <label className="block mb-2 text-sm font-medium text-gray-700">
+              Select Date
+            </label>
+            <input
+              type="date"
+              className="border p-2 rounded w-full mb-4"
+              value={selectedDate}
+              onChange={(e) => setSelectedDate(e.target.value)}
+            />
+            <label className="block mb-2 text-sm font-medium text-gray-700">
+              Select Time
+            </label>
+            <input
+              type="time"
+              className="border p-2 rounded w-full mb-4"
+              value={selectedTime}
+              onChange={(e) => setSelectedTime(e.target.value)}
+            />
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={handleCancelReschedule}
+                className="px-3 py-1 rounded border hover:bg-gray-100"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveReschedule}
+                className="px-3 py-1 rounded bg-blue-500 text-white hover:bg-blue-600"
+              >
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
