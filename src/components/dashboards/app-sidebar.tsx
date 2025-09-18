@@ -27,7 +27,7 @@ const items = [
   },
   {
     title: "Calendar",
-    url: "/dashboard/calendar",
+    url: "/calendar",
     icon: Calendar,
   },
   {
