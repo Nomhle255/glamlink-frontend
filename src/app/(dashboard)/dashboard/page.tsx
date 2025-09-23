@@ -6,12 +6,12 @@ export default function page() {
   const greeting = "Good morning!";
   const providerName = "Service Provider";
   const totalServices = 10;
-  const totalBookings = 20;
+  const totalBookings = 5;
   const todayBookings = 5;
   const previousBookings = [
-    { id: 1, client_name: "John Doe", service_name: "Service 1", date: "2024-09-16", time: "10:00 AM", status: "Confirmed" },
-    { id: 2, client_name: "Jane Doe", service_name: "Service 2", date: "2024-09-15", time: "11:00 AM", status: "Pending" },
-    { id: 3, client_name: "Bob Smith", service_name: "Service 3", date: "2024-09-14", time: "12:00 PM", status: "Complete" },
+    { id: 1, client_name: "Fundi", service_name: "Nails ", date: "2025-09-16", time: "10:00 AM", status: "Confirmed" },
+    { id: 2, client_name: "Lintle ", service_name: "Make up ", date: "2025-09-15", time: "11:00 AM", status: "Pending" },
+    { id: 3, client_name: "Nomhle", service_name: "Hairstyles", date: "2025-09-14", time: "12:00 PM", status: "Complete" },
   ];
 
   return (

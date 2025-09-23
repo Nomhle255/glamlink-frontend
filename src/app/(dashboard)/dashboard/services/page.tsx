@@ -1,91 +1,40 @@
-
 "use client";
-import { useState } from "react";
 
-interface Service {
-  id: number;
-  name: string;
-  price: number;
-}
+import React, { useState, useEffect } from "react";
+import {
+  addServiceToStylist,
+  getServices,
+  getServicesForStylist,
+  getServiceById,
+  updateStylistService,
+  removeServiceFromStylist,
+  deleteStylistService,
+  Service,
+} from "@/app/api/stylists-service";
+import { useAuth } from "@/context/AuthContext";
 
+export default function ServicesPage() {
+  const { user, isAuthenticated, loading } = useAuth();
 
-export default function Services() {
-  // Hardcoded services 
-  const [services, setServices] = useState<Service[]>([
-    { id: 1, name: "Haircut", price: 25 },
-    { id: 2, name: "Nail Polish", price: 15 },
-    { id: 3, name: "Facial", price: 30 },
-  ]);
-  const sortedServices = [...services].sort((a, b) => a.name.localeCompare(b.name));
+  const [services, setServices] = useState<Service[]>([]);
+  const [allServices, setAllServices] = useState<Service[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isError, setIsError] = useState(false);
 
   // Modal state for add service
   const [showAddModal, setShowAddModal] = useState(false);
   const [selectedService, setSelectedService] = useState("");
   const [price, setPrice] = useState("");
+  const [isCreating, setIsCreating] = useState(false);
 
-  // Edit state
-  const [editId, setEditId] = useState<number | null>(null);
-  const [editName, setEditName] = useState("");
+  // Modal state for edit service
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingService, setEditingService] = useState<any>(null);
+  const [editSelectedService, setEditSelectedService] = useState("");
   const [editPrice, setEditPrice] = useState("");
+  const [isUpdating, setIsUpdating] = useState(false);
 
-  // Delete service handler
-  const handleDelete = (id: number) => {
-    setServices(prev => prev.filter(s => s.id !== id));
-    if (editId === id) {
-      setEditId(null);
-      setEditName("");
-      setEditPrice("");
-    }
-  };
-
-  // Example dropdown options (could be more in real app)
-  const serviceOptions = [
-    "Haircut",
-    "Nail Polish",
-    "Facial",
-    "Makeup",
-    "Massage",
-    "Waxing",
-    "Other"
-  ];
-
-  // Add service handler
-  const handleAddService = () => {
-    if (!selectedService || !price) return;
-    setServices(prev => [
-      ...prev,
-      {
-        id: prev.length ? Math.max(...prev.map(s => s.id)) + 1 : 1,
-        name: selectedService,
-        price: Number(price)
-      }
-    ]);
-    setSelectedService("");
-    setPrice("");
-    setShowAddModal(false);
-  };
-
-  // Edit service handler
-  const handleEditClick = (service: Service) => {
-    setEditId(service.id);
-    setEditName(service.name);
-    setEditPrice(service.price.toString());
-  };
-
-  const handleEditSave = () => {
-    if (!editName || !editPrice) return;
-    setServices(prev => prev.map(s => s.id === editId ? { ...s, name: editName, price: Number(editPrice) } : s));
-    setEditId(null);
-    setEditName("");
-    setEditPrice("");
-  };
-
-  const handleEditCancel = () => {
-    setEditId(null);
-    setEditName("");
-    setEditPrice("");
-  };
-   // Simple greeting logic (e.g., based on time of day)
+  // Greeting logic
   const greeting = (() => {
     const hour = new Date().getHours();
     if (hour < 12) return "Good morning,";
@@ -93,41 +42,258 @@ export default function Services() {
     return "Good evening,";
   })();
 
+  // Helper to clear current list
+  const clearAllServices = () => {
+    setServices([]);
+  };
+
+  // Fetch services for this user
+  const fetchServices = async () => {
+    if (!user) {
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      setIsError(false);
+
+      const data = await getServicesForStylist(user.id);
+
+      // For each stylist service, fetch the service details
+      const processedServices = await Promise.all(
+        Array.isArray(data) 
+          ? data.map(async (item: any) => {
+              try {
+                const serviceDetails = await getServiceById(item.serviceId);
+                return {
+                  id: item.id,
+                  name: serviceDetails.name || `Service ${item.serviceId}`,
+                  price: item.price || 0,
+                  description: serviceDetails.description || `Service with ID: ${item.serviceId}`,
+                  duration: item.duration,
+                  serviceId: item.serviceId,
+                };
+              } catch (error) {
+                // If we can't fetch service details, use fallback
+                return {
+                  id: item.id,
+                  name: `Service ${item.serviceId}`,
+                  price: item.price || 0,
+                  description: `Service with ID: ${item.serviceId}`,
+                  duration: item.duration,
+                  serviceId: item.serviceId,
+                };
+              }
+            })
+          : []
+      );
+
+      setServices(processedServices);
+    } catch (error) {
+      setIsError(true);
+      setServices([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Fetch all services for dropdown
+  const fetchAllServices = async () => {
+    try {
+      const data = await getServices();
+      setAllServices(Array.isArray(data) ? data : []);
+    } catch (error) {
+      // Error fetching all services
+    }
+  };
+
+  // Initial load
+  useEffect(() => {
+    if (!loading && isAuthenticated && user) {
+      // Fetch services for this specific stylist from stylist-services table
+      fetchServices();
+      // Also fetch all available services for the dropdown
+      fetchAllServices();
+    }
+  }, [user, loading, isAuthenticated]);
+
+  // Handle add service
+  const handleAddService = async () => {
+    if (!selectedService || !price || !user) return;
+
+    try {
+      setIsCreating(true);
+
+      const selectedServiceObj = allServices.find(
+        (service) => service.name === selectedService
+      );
+      if (!selectedServiceObj) {
+        alert("Selected service not found");
+        return;
+      }
+
+      const serviceData = {
+        stylistId: Number(user.id),
+        serviceId: Number(selectedServiceObj.id),
+        price: Number(price),
+      };
+
+      await addServiceToStylist(serviceData);
+
+      setSelectedService("");
+      setPrice("");
+      setShowAddModal(false);
+      await fetchServices();
+    } catch (error: any) {
+      alert("Failed to add service. Please try again.");
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
+  // Handle edit service
+  const handleEditService = (service: any) => {
+    setEditingService(service);
+    setEditSelectedService(service.serviceId?.toString() || "");
+    setEditPrice(service.price?.toString() || "");
+    setShowEditModal(true);
+  };
+
+  // Handle update service
+  const handleUpdateService = async () => {
+    if (!editSelectedService || !editPrice || !user || !editingService) return;
+
+    setIsUpdating(true);
+    try {
+      const result = await updateStylistService(editingService.id, {
+        serviceId: parseInt(editSelectedService),
+        price: parseFloat(editPrice),
+      });
+
+      alert("Service updated successfully!");
+      setShowEditModal(false);
+      setEditingService(null);
+      setEditSelectedService("");
+      setEditPrice("");
+      fetchServices(); // Refresh the list
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.message || error.message || "Unknown error";
+      alert(`Failed to update service: ${errorMessage}`);
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  // Handle delete service
+  const handleDeleteService = async (service: any) => {
+    if (!user) {
+      alert("Please log in to delete services.");
+      return;
+    }
+
+    if (confirm('Are you sure you want to delete this service?')) {
+      try {
+        // Use removeServiceFromStylist instead since backend expects stylistId and serviceId
+        if (service.serviceId) {
+          await removeServiceFromStylist(Number(user.id), service.serviceId);
+        } else {
+          // Fallback: try to delete using the record ID format but with proper parameters
+          await deleteStylistService(service.id);
+        }
+        
+        alert("Service deleted successfully!");
+        fetchServices(); // Refresh the list
+      } catch (error: any) {
+        const errorMessage = error.response?.data?.message || error.message || "Unknown error";
+        alert(`Failed to delete service: ${errorMessage}`);
+      }
+    }
+  };
+
+  // Helpers for display
+  const getServiceName = (service: any): string => {
+    return (
+      service?.name ||
+      service?.service_name ||
+      service?.title ||
+      service?.serviceName ||
+      "Unknown Service"
+    );
+  };
+
+  const getServicePrice = (service: any): number => {
+    return service?.price || service?.service_price || service?.cost || 0;
+  };
+
+  // UI states
+  if (loading) {
+    return (
+      <div className="p-6">
+        <div>Loading authentication...</div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated || !user) {
+    return (
+      <div className="p-6">
+        <div className="text-red-600">
+          Error: Please log in to view your services.
+          <br />
+          <small>
+            Not authenticated: {!isAuthenticated ? 'true' : 'false'}, 
+            No user: {!user ? 'true' : 'false'}
+          </small>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="pb-16 p-4 relative">
-      
       {/* Greeting */}
       <div className="mb-6 p-4 bg-pink-500 rounded shadow text-white">
-        <h2 className="text-lg font-bold">{greeting} Welcome to GlamLink!</h2>
-        <p className="text-gray-700">
-          View your services and their prices below.
-        </p>
+        <h2 className="text-lg font-bold">
+          {greeting} {user?.name || 'User'}, Welcome to GlamLink!
+        </h2>
+        <p>View your services and their prices below.</p>
       </div>
 
       {/* Add Service Button */}
-      {/* Add Service Button and Conditional Form */}
       <div className="flex flex-col items-start mb-8">
         <button
           className="flex items-center gap-2 bg-pink-500 hover:bg-pink-600 text-white font-semibold px-5 py-2 rounded shadow mb-4"
-          title="Add Service"
           onClick={() => setShowAddModal((v) => !v)}
         >
           <span className="text-xl">+</span> Add Service
         </button>
+
         {showAddModal && (
           <div className="max-w-md bg-white rounded-lg shadow p-6">
-            <h2 className="text-xl font-bold mb-4 text-pink-600">Add Service</h2>
-            <form className="flex flex-col gap-4" onSubmit={e => { e.preventDefault(); handleAddService(); }}>
+            <h2 className="text-xl font-bold mb-4 text-pink-600">
+              Add Service
+            </h2>
+            <form
+              className="flex flex-col gap-4"
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleAddService();
+              }}
+            >
               <div>
-                <label className="block text-sm font-medium mb-1">Service Name</label>
+                <label className="block text-sm font-medium mb-1">
+                  Service Name
+                </label>
                 <select
                   className="w-full border p-2 rounded"
                   value={selectedService}
-                  onChange={e => setSelectedService(e.target.value)}
+                  onChange={(e) => setSelectedService(e.target.value)}
                 >
                   <option value="">Select a service</option>
-                  {serviceOptions.map((opt) => (
-                    <option key={opt} value={opt}>{opt}</option>
+                  {allServices.map((service) => (
+                    <option key={service.id} value={service.name}>
+                      {service.name}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -138,80 +304,151 @@ export default function Services() {
                   className="w-full border p-2 rounded"
                   placeholder="Enter price"
                   value={price}
-                  onChange={e => setPrice(e.target.value)}
+                  onChange={(e) => setPrice(e.target.value)}
                 />
               </div>
               <button
                 type="submit"
-                className="bg-pink-500 hover:bg-pink-600 text-white font-semibold px-5 py-2 rounded shadow mt-2"
+                disabled={isCreating || !selectedService || !price}
+                className={`font-semibold px-5 py-2 rounded shadow mt-2 ${
+                  isCreating || !selectedService || !price
+                    ? "bg-gray-400 cursor-not-allowed text-gray-600"
+                    : "bg-pink-500 hover:bg-pink-600 text-white"
+                }`}
               >
-                Add Service
+                {isCreating ? "Adding..." : "Add Service"}
               </button>
             </form>
           </div>
         )}
       </div>
 
-      {/* Service List */}
-      <div className="grid grid-cols-4 gap-4">
-        {sortedServices.map((service) => (
-          <div
-            key={service.id}
-            className="max-w-sm p-6 bg-white border border-gray-200 rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-700 flex flex-col gap-2 relative"
-          >
-            {editId === service.id ? (
-              <form className="flex flex-col gap-3" onSubmit={e => { e.preventDefault(); handleEditSave(); }}>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Service Name</label>
-                  <select
-                    className="w-full border p-2 rounded"
-                    value={editName}
-                    onChange={e => setEditName(e.target.value)}
-                  >
-                    <option value="">Select a service</option>
-                    {serviceOptions.map((opt) => (
-                      <option key={opt} value={opt}>{opt}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Price</label>
-                  <input
-                    type="number"
-                    className="w-full border p-2 rounded"
-                    value={editPrice}
-                    onChange={e => setEditPrice(e.target.value)}
-                  />
-                </div>
-                <div className="flex gap-2 mt-2">
-                  <button type="submit" className="bg-pink-500 hover:bg-pink-600 text-white px-4 py-2 rounded">Save</button>
-                  <button type="button" className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded" onClick={handleEditCancel}>Cancel</button>
-                </div>
-              </form>
-            ) : (
-              <>
-                <div className="flex items-center justify-between">
-                  <h5 className="mb-2 text-2xl font-bold tracking-tight text-pink-600 dark:text-pink-400">
-                    {service.name}
-                  </h5>
-                  <div className="flex gap-4 items-center">
-                    <button className="text-pink-600 hover:underline font-medium" title="Edit" onClick={() => handleEditClick(service)}>Edit</button>
-                    <button className="text-red-600 hover:underline font-medium" title="Delete" onClick={() => handleDelete(service.id)}>Delete</button>
+      {/* Loading state for services */}
+      {isLoading && (
+        <div className="mb-4 p-4 bg-blue-100 rounded">
+          Loading your services...
+        </div>
+      )}
+
+      {/* Error state for services */}
+      {isError && (
+        <div className="mb-4 p-4 bg-red-100 text-red-700 rounded">
+          Error loading services. Please try refreshing the page.
+        </div>
+      )}
+
+      {/* Services list*/}
+      <div className="mb-8">
+        <h3 className="text-lg font-semibold mb-3">Your Services</h3>
+        {services.length === 0 && !isLoading ? (
+          <p>No services added yet.</p>
+        ) : (
+          <div className="space-y-4">
+            {services.map((service) => (
+              <div
+                key={service.id}
+                className="p-4 bg-white rounded shadow"
+              >
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h4 className="text-lg font-semibold mb-2">
+                      {getServiceName(service)}
+                    </h4>
+                    <p className="text-2xl font-bold text-pink-600">
+                      P{getServicePrice(service)}
+                    </p>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => handleEditService(service)}
+                      className="px-3 py-1 bg-pink-500 text-white rounded hover:bg-pink-600 text-sm transition-colors"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleDeleteService(service)}
+                      className="px-3 py-1 bg-pink-500 text-white rounded hover:bg-pink-600 text-sm transition-colors"
+                    >
+                      Delete
+                    </button>
                   </div>
                 </div>
-                <div 
-                  className="inline-flex items-center px-3 py-2 text-sm font-bold text-pink-600 bg-pink-100 rounded-lg border border-pink-200"
-                >
-                  P{!isNaN(Number(service.price))
-                    ? Number(service.price).toFixed(2)
-                    : "0.00"}
-                </div>
-              </>
-            )}
+              </div>
+            ))}
           </div>
-        ))}
+        )}
       </div>
+
+      {/* Edit Service Modal */}
+      {showEditModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow p-6 max-w-md w-full mx-4">
+            <h2 className="text-xl font-bold mb-4 text-pink-600">
+              Edit Service
+            </h2>
+            <form
+              className="flex flex-col gap-4"
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleUpdateService();
+              }}
+            >
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  Service Name
+                </label>
+                <select
+                  className="w-full border p-2 rounded"
+                  value={editSelectedService}
+                  onChange={(e) => setEditSelectedService(e.target.value)}
+                >
+                  <option value="">Select a service</option>
+                  {allServices.map((service) => (
+                    <option key={service.id} value={service.id}>
+                      {service.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Price</label>
+                <input
+                  type="number"
+                  className="w-full border p-2 rounded"
+                  placeholder="Enter price (p)"
+                  value={editPrice}
+                  onChange={(e) => setEditPrice(e.target.value)}
+                />
+              </div>
+              <div className="flex gap-3 mt-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowEditModal(false);
+                    setEditingService(null);
+                    setEditSelectedService("");
+                    setEditPrice("");
+                  }}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isUpdating || !editSelectedService || !editPrice}
+                  className={`flex-1 font-semibold px-4 py-2 rounded ${
+                    isUpdating || !editSelectedService || !editPrice
+                      ? "bg-gray-400 cursor-not-allowed text-gray-600"
+                      : "bg-pink-500 hover:bg-pink-600 text-white"
+                  }`}
+                >
+                  {isUpdating ? "Updating..." : "Update Service"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
-
