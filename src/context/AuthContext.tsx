@@ -59,9 +59,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const token = typeof window !== 'undefined' ? localStorage.getItem("token") : null;
     const userId = typeof window !== 'undefined' ? localStorage.getItem("userId") : null;
     
-    console.log("Refresh - Stored user:", storedUser);
-    console.log("Refresh - Auth token exists:", !!token);
-    console.log("Refresh - User ID:", userId);
     
     if (storedUser && token) {
       const normalizedUser: AuthUser = {
@@ -71,7 +68,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         ...storedUser
       };
       
-      console.log("Refresh - Setting normalized user:", normalizedUser);
       setUser(normalizedUser);
     } else {
       setUser(null);
@@ -108,13 +104,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const logoutUser = () => {
-    console.log("Logging out user");
     logout();
     setUser(null);
   };
 
   // Add debug logging
-  console.log("AuthProvider render - User:", user, "Loading:", loading, "Authenticated:", !!user);
 
   return (
     <AuthContext.Provider

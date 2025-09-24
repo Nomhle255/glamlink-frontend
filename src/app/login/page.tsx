@@ -43,7 +43,6 @@ export default function LoginPage() {
       // Execute login - this will automatically store token and stylist_id
       const data = await login({ email, password });
       
-      console.log("Login completed, refreshing auth state...");
       
       // Refresh AuthContext to pick up the new login data
       setTimeout(() => {

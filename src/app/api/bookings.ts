@@ -1,14 +1,120 @@
+// Fetch service names for given service IDs
+import { getServiceById } from "@/app/api/stylists-service";
+import { getSlotById } from "@/app/api/timeslots";
+
+export const fetchServiceNames = async (serviceIds: number[], serviceNames: {[key: number]: string}, setServiceNames: (names: {[key: number]: string}) => void) => {
+  const newServiceNames = { ...serviceNames };
+  const idsToFetch = serviceIds.filter(id => !newServiceNames[id]);
+  if (idsToFetch.length === 0) return;
+  try {
+    const promises = idsToFetch.map(id => getServiceById(id));
+    const services = await Promise.all(promises);
+    services.forEach((service, index) => {
+      if (service?.name) {
+        newServiceNames[idsToFetch[index]] = service.name;
+      }
+    });
+    setServiceNames(newServiceNames);
+  } catch (error) {
+    // Failed to fetch service names
+  }
+};
+
+// Fetch slot times for given slot IDs
+export const fetchSlotTimes = async (slotIds: number[], slotTimes: {[key: number]: string}, setSlotTimes: (times: {[key: number]: string}) => void) => {
+  const newSlotTimes = { ...slotTimes };
+  const idsToFetch = slotIds.filter(id => !newSlotTimes[id]);
+  if (idsToFetch.length === 0) return;
+  try {
+    const promises = idsToFetch.map(id => getSlotById(id));
+    const slots = await Promise.all(promises);
+    slots.forEach((slot, index) => {
+      const startTime = slot?.startTime || slot?.start_time || slot?.bookingTime || slot?.booking_time;
+      if (startTime) {
+        newSlotTimes[idsToFetch[index]] = startTime;
+      }
+    });
+    setSlotTimes(newSlotTimes);
+  } catch (error) {
+    // Failed to fetch slot times
+  }
+};
+
+// Fetch bookings manually
+export const fetchBookings = async (
+  userId: number | undefined,
+  setIsError: (v: boolean) => void,
+  setIsLoading: (v: boolean) => void,
+  setBookings: (b: Booking[]) => void,
+  setServiceNames: (names: {[key: number]: string}) => void,
+  setSlotTimes: (times: {[key: number]: string}) => void,
+  serviceNames: {[key: number]: string},
+  slotTimes: {[key: number]: string}
+) => {
+  if (!userId) {
+    setIsError(true);
+    setIsLoading(false);
+    return;
+  }
+  try {
+    setIsLoading(true);
+    const data = await getBookingsByStylist(Number(userId));
+    setBookings(data);
+    setIsError(false);
+    // Extract service IDs and fetch service names
+    const serviceIds = data
+      .map((booking: Booking) => booking.serviceId)
+      .filter((id: any): id is number => typeof id === 'number');
+    if (serviceIds.length > 0) {
+      await fetchServiceNames(serviceIds, serviceNames, setServiceNames);
+    }
+    // Extract slot IDs and fetch slot times
+    const slotIds = data
+      .map((booking: Booking) => booking.slotId)
+      .filter((id: any): id is number => typeof id === 'number');
+    if (slotIds.length > 0) {
+      await fetchSlotTimes(slotIds, slotTimes, setSlotTimes);
+    }
+  } catch (error) {
+    setIsError(true);
+  } finally {
+    setIsLoading(false);
+  }
+};
 // lib/api/bookings.ts
 import axios from "axios";
 
-const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080" as string;
-enum BookingStatus {
+export enum BookingStatus {
   PENDING = "PENDING",
   CONFIRMED = "CONFIRMED",
   CANCELLED = "CANCELLED",
   COMPLETED = "COMPLETED",
   RESCHEDULED = "RESCHEDULED",
 }
+
+export interface Booking {
+  id: number;
+  serviceId: number;
+  slotId: number;
+  service?: {
+    name: string;
+  };
+  customerName: string;
+  status: BookingStatus | string;
+  slot?: {
+    startTime: string;
+  };
+  // Additional fields that might come from backend
+  datetime?: string;
+  scheduledTime?: string;
+  appointmentTime?: string;
+  bookedAt?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  [key: string]: any; 
+}
+
+const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080" as string;
 export const createBooking = async (data: {
   providerId: number;
   bookingNumber: string;
@@ -16,7 +122,7 @@ export const createBooking = async (data: {
   stylistId: number;
   serviceId: number;
   slotId: number;
-  status: "PENDING" | "CONFIRMED" | "CANCELLED" | "COMPLETED" | "RESCHEDULED";
+  status: BookingStatus;
   customerName: string;
   customerPhone: string;
 }) => {
@@ -73,7 +179,6 @@ export const updateBookingStatus = async (id: number, status: BookingStatus) => 
     });
     return res.data;
   } catch (error: any) {
-    console.error('Failed to update booking status:', error);
     
     // If CORS blocks the request, the error will be ERR_NETWORK
     if (error.code === 'ERR_NETWORK') {
@@ -94,90 +199,35 @@ export const updateBookingStatus = async (id: number, status: BookingStatus) => 
   }
 };
 
-export const rescheduleBooking = async (id: number, slotId: number) => {
+export const rescheduleBooking = async (id: number, newDateTime: string, stylistId: number, status: string = 'RESCHEDULED') => {
   const token = localStorage.getItem('token');
-  
-  // Convert the timestamp back to a proper datetime for the backend
-  const newDateTime = new Date(slotId * 1000).toISOString();
-  
-  console.log('🔄 Attempting to reschedule booking:', {
-    bookingId: id,
-    originalSlotId: slotId,
-    newDateTime: newDateTime,
-    endpoint: `${API_URL}/bookings/${id}/reschedule`
-  });
-  
+  // newDateTime must be a valid ISO string (e.g., "2025-09-25T09:09:00.000Z")
   try {
-    // Try the simplest approach first - just the booking time
-    console.log('📅 Trying with bookingTime field...');
-    const res = await axios.patch(`${API_URL}/bookings/${id}/reschedule`, { 
-      bookingTime: newDateTime
-    }, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      }
-    });
-    console.log('✅ Reschedule successful with bookingTime!');
-    return res.data;
-  } catch (error: any) {
-    console.log('❌ bookingTime approach failed:', error.response?.status, error.response?.data);
-    
-    if (error.response?.status === 500) {
-      try {
-        // Try with multiple datetime fields
-        console.log('📅 Trying with multiple datetime fields...');
-        const res = await axios.patch(`${API_URL}/bookings/${id}/reschedule`, { 
-          newDateTime: newDateTime,
-          newBookingTime: newDateTime,
-          startTime: newDateTime,
-          slot_time: newDateTime
-        }, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          }
-        });
-        console.log('✅ Reschedule successful with multiple fields!');
-        return res.data;
-      } catch (secondError: any) {
-        console.log('❌ Multiple datetime fields failed:', secondError.response?.status, secondError.response?.data);
-        
-        try {
-          // Try with minimal data - just a simple update
-          console.log('📅 Trying minimal approach...');
-          const res = await axios.patch(`${API_URL}/bookings/${id}/reschedule`, {}, {
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json',
-            }
-          });
-          console.log('✅ Reschedule successful with minimal data!');
-          return res.data;
-        } catch (thirdError: any) {
-          console.log('❌ All approaches failed. Backend error details:', {
-            status: thirdError.response?.status,
-            data: thirdError.response?.data,
-            message: thirdError.message
-          });
-          throw new Error('Backend reschedule endpoint is not working properly. This needs to be fixed on the server side.');
+    const res = await axios.patch(
+      `${API_URL}/bookings/${id}/reschedule`,
+      {
+        stylistId,
+        newStartTime: newDateTime,
+        status
+      },
+      {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
         }
       }
-    }
-    
-    // Handle other error types
+    );
+    return res.data;
+  } catch (error: any) {
     if (error.code === 'ERR_NETWORK') {
       throw new Error('Network error: Please check your connection and try again.');
     }
-    
     if (error.response?.status === 404) {
       throw new Error('Reschedule endpoint not found. This feature may not be available.');
     }
-    
     if (error.response?.status === 400) {
       throw new Error('Invalid request: The selected time slot may not be available.');
     }
-    
     throw error;
   }
 };

@@ -102,7 +102,6 @@ export const login = async (data: LoginData) => {
               'Authorization': `Bearer temp_token_${Date.now()}`
             }
           });
-          console.log("Profile response:", profileRes.data);
           
           if (profileRes.data?.id) {
             const profileUser = {
@@ -111,7 +110,6 @@ export const login = async (data: LoginData) => {
               email: profileRes.data.email || data.email
             };
             
-            console.log("✅ Got user data from profile endpoint:", profileUser);
             const tempToken = "temp_token_" + Date.now();
             localStorage.setItem("token", tempToken);
             localStorage.setItem("userInfo", JSON.stringify(profileUser));

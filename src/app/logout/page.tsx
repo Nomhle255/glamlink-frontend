@@ -11,7 +11,6 @@ export default function Logout() {
   useEffect(() => {
     const performLogout = async () => {
       try {
-        console.log("Performing logout...");
         
         // Call the logout function from auth.ts (clears localStorage)
         logout();
@@ -19,7 +18,6 @@ export default function Logout() {
         // Call the AuthContext logout function (updates state)
         logoutUser();
         
-        console.log("✅ Logout completed");
         
         // Redirect to home/landing page
         setTimeout(() => {
@@ -27,7 +25,6 @@ export default function Logout() {
         }, 1000);
         
       } catch (error) {
-        console.error("Logout error:", error);
         // Still redirect even if there's an error
         router.push("/");
       }

@@ -1,47 +1,17 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import {
-  getBookingsByProvider,
-  getBookingsByStylist,
   updateBookingStatus,
   rescheduleBooking,
   cancelBooking,
+  fetchBookings,
+  BookingStatus
 } from "@/app/api/bookings";
 import { updateSlotBookedStatus } from "@/app/api/timeslots";
-import { getServiceById } from "@/app/api/stylists-service";
-import { getSlotById, Slot, getTimeSlotsByStylist } from "@/app/api/timeslots";
+// Removed direct API usage; handled in api/bookings
 import { useAuth } from "@/context/AuthContext";
+import type { Booking } from "@/app/api/bookings";
 
-// Define types for your booking data
-interface Booking {
-  id: number;
-  serviceId: number;
-  slotId: number;
-  service?: {
-    name: string;
-  };
-  customerName: string;
-  status: BookingStatus | string;
-  slot?: {
-    startTime: string;
-  };
-  // Additional fields that might come from backend
-  datetime?: string;
-  scheduledTime?: string;
-  appointmentTime?: string;
-  bookedAt?: string;
-  createdAt?: string;
-  updatedAt?: string;
-  [key: string]: any; // Allow for additional backend fields
-}
-
-enum BookingStatus {
-  PENDING = "PENDING",
-  CONFIRMED = "CONFIRMED",
-  CANCELLED = "CANCELLED",
-  COMPLETED = "COMPLETED",
-  RESCHEDULED = "RESCHEDULED",
-}
 
 export default function BookingsPage() {
   const { user, isAuthenticated, loading } = useAuth();
@@ -63,93 +33,22 @@ export default function BookingsPage() {
   const [selectedDate, setSelectedDate] = useState<string>("");
   const [selectedTime, setSelectedTime] = useState<string>("");
 
-  // Fetch service names for given service IDs
-  const fetchServiceNames = async (serviceIds: number[]) => {
-    const newServiceNames = { ...serviceNames };
-    const idsToFetch = serviceIds.filter(id => !newServiceNames[id]);
-    
-    if (idsToFetch.length === 0) return;
-
-    try {
-      const promises = idsToFetch.map(id => getServiceById(id));
-      const services = await Promise.all(promises);
-      
-      services.forEach((service, index) => {
-        if (service?.name) {
-          newServiceNames[idsToFetch[index]] = service.name;
-        }
-      });
-      
-      setServiceNames(newServiceNames);
-    } catch (error) {
-      // Failed to fetch service names
-    }
-  };
-
-  // Fetch slot times for given slot IDs
-  const fetchSlotTimes = async (slotIds: number[]) => {
-    const newSlotTimes = { ...slotTimes };
-    const idsToFetch = slotIds.filter(id => !newSlotTimes[id]);
-    if (idsToFetch.length === 0) return;
-
-    try {
-      const promises = idsToFetch.map(id => getSlotById(id));
-      const slots = await Promise.all(promises);
-      slots.forEach((slot, index) => {
-        // Handle different possible time field names
-        const startTime = slot?.startTime || slot?.start_time || slot?.bookingTime || slot?.booking_time;
-        if (startTime) {
-          newSlotTimes[idsToFetch[index]] = startTime;
-        }
-      });
-      setSlotTimes(newSlotTimes);
-    } catch (error) {
-      console.error('Failed to fetch slot times:', error);
-    }
-  };
-
-  // Fetch bookings manually
-  const fetchBookings = async () => {
-    if (!user?.id) {
-      setIsError(true);
-      setIsLoading(false);
-      return;
-    }
-
-    try {
-      setIsLoading(true);
-      const data = await getBookingsByStylist(Number(user.id));
-      setBookings(data);
-      setIsError(false);
-
-      // Extract service IDs and fetch service names
-      const serviceIds = data
-        .map((booking: Booking) => booking.serviceId)
-        .filter((id: any): id is number => typeof id === 'number');
-
-      if (serviceIds.length > 0) {
-        await fetchServiceNames(serviceIds);
-      }
-
-      // Extract slot IDs and fetch slot times
-      const slotIds = data
-        .map((booking: Booking) => booking.slotId)
-        .filter((id: any): id is number => typeof id === 'number');
-
-      if (slotIds.length > 0) {
-        await fetchSlotTimes(slotIds);
-      }
-    } catch (error) {
-      setIsError(true);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  // Use fetchBookings from api/bookings.ts
+  // ...existing code...
 
   // Load bookings on component mount and when user changes
   useEffect(() => {
     if (!loading && isAuthenticated && user?.id) {
-      fetchBookings();
+      fetchBookings(
+        user.id,
+        setIsError,
+        setIsLoading,
+        setBookings,
+        setServiceNames,
+        setSlotTimes,
+        serviceNames,
+        slotTimes
+      );
     }
   }, [loading, isAuthenticated, user?.id]);
 
@@ -162,7 +61,16 @@ export default function BookingsPage() {
       if (booking && booking.slotId) {
         await updateSlotBookedStatus(booking.slotId, true);
       }
-      await fetchBookings(); // Refresh bookings
+      await fetchBookings(
+        user?.id,
+        setIsError,
+        setIsLoading,
+        setBookings,
+        setServiceNames,
+        setSlotTimes,
+        serviceNames,
+        slotTimes
+      ); // Refresh bookings
     } catch (error) {
       // handle error
     }
@@ -171,16 +79,38 @@ export default function BookingsPage() {
   const cancelBookingAction = async (id: number) => {
     try {
       await cancelBooking(id);
-      await fetchBookings(); // Refresh bookings
+      await fetchBookings(
+        user?.id,
+        setIsError,
+        setIsLoading,
+        setBookings,
+        setServiceNames,
+        setSlotTimes,
+        serviceNames,
+        slotTimes
+      ); // Refresh bookings
     } catch (error) {
       // Failed to cancel booking
     }
   };
 
-  const rescheduleBookingAction = async (id: number, slotId: number) => {
+  const rescheduleBookingAction = async (id: number, newDateTime: string) => {
     try {
-      await rescheduleBooking(id, slotId);
-      await fetchBookings(); // Refresh bookings
+      if (typeof user?.id === "number") {
+        await rescheduleBooking(id, newDateTime, user.id, 'RESCHEDULED');
+      } else {
+        throw new Error("User ID is not available for rescheduling booking.");
+      }
+      await fetchBookings(
+        user?.id,
+        setIsError,
+        setIsLoading,
+        setBookings,
+        setServiceNames,
+        setSlotTimes,
+        serviceNames,
+        slotTimes
+      ); // Refresh bookings
     } catch (error) {
       // Failed to reschedule booking
     }
@@ -189,7 +119,16 @@ export default function BookingsPage() {
   const completeBooking = async (id: number) => {
     try {
       await updateBookingStatus(id, BookingStatus.COMPLETED);
-      await fetchBookings(); // Refresh bookings
+      await fetchBookings(
+        user?.id,
+        setIsError,
+        setIsLoading,
+        setBookings,
+        setServiceNames,
+        setSlotTimes,
+        serviceNames,
+        slotTimes
+      ); // Refresh bookings
     } catch (error) {
       // Failed to complete booking
     }
@@ -355,13 +294,7 @@ export default function BookingsPage() {
 
     // Create a proper datetime string for the backend
     const newDateTime = `${selectedDate}T${selectedTime}:00.000Z`;
-    
-    // Send the datetime directly to match backend expectations
-    // The backend server.patch('/bookings/:id/reschedule') probably expects new time info
-    
-    // Use the datetime as the "slotId" or modify rescheduleBookingAction to handle datetime
-    const timeBasedId = Math.floor(new Date(newDateTime).getTime() / 1000);
-    rescheduleBookingAction(rescheduleBookingId, timeBasedId);
+    rescheduleBookingAction(rescheduleBookingId, newDateTime);
     handleCancelReschedule();
   };
   
@@ -380,7 +313,7 @@ export default function BookingsPage() {
 
       <h1 className="text-2xl font-bold mb-6">Bookings</h1>
 
-      {/* Tabs - FIXED: services is now properly typed as string[] */}
+      {/* Tabs*/}
       {services.length > 0 && (
         <ul className="flex flex-wrap text-sm font-medium text-center text-gray-500 dark:text-gray-400 mb-4">
           {services.map((service: string) => (
@@ -444,30 +377,28 @@ export default function BookingsPage() {
               <div className="flex flex-row gap-2 md:flex-col md:items-end mt-2 md:mt-0">
                 <button
                   className="bg-green-100 text-green-700 px-3 py-1 rounded hover:bg-green-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-                  disabled={b.status === "CONFIRMED" || b.status === "RESCHEDULED" || b.status === "COMPLETED"}
+                  disabled={b.status === "CONFIRMED" || b.status === "COMPLETED" || b.status === "RESCHEDULED"}
                   onClick={() => confirmBooking(b.id)}
                 >
                   Confirm
                 </button>
                 <button
                   className="bg-blue-100 text-blue-700 px-3 py-1 rounded hover:bg-blue-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-                  disabled={b.status === "CONFIRMED" || b.status === "COMPLETED"}
+                  disabled={b.status === "COMPLETED" || b.status === "RESCHEDULED"}
                   onClick={() => handleRescheduleClick(b)}
                 >
                   Reschedule
                 </button>
                 <button
                   className="bg-red-100 text-red-700 px-3 py-1 rounded hover:bg-red-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-                  disabled={b.status === "CONFIRMED" || b.status === "COMPLETED"}
+                  disabled={b.status === "COMPLETED"}
                   onClick={() => cancelBookingAction(b.id)}
                 >
                   Cancel
                 </button>
                 <button
                   className="bg-gray-200 text-gray-700 px-3 py-1 rounded hover:bg-gray-300 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-                  disabled={
-                    !(b.status === "CONFIRMED" || b.status === "RESCHEDULED")
-                  }
+                  disabled={b.status === "COMPLETED" || (b.status !== "CONFIRMED" && b.status !== "RESCHEDULED")}
                   onClick={() => completeBooking(b.id)}
                 >
                   Complete

@@ -1,4 +1,5 @@
 
+
 import Link from "next/link"
 
 import {
@@ -14,6 +15,8 @@ import {
 import { Inbox, LayoutDashboard, Calendar, Search, User, LogOut } from "lucide-react"
 
 // Menu items with real URLs.
+import { CreditCard } from "lucide-react";
+
 const items = [
   {
     title: "Dashboard",
@@ -35,7 +38,12 @@ const items = [
     url: "/dashboard/bookings",
     icon: Inbox,
   },
-   {
+  {
+    title: "Payment Method",
+    url: "/dashboard/payment-method",
+    icon: CreditCard,
+  },
+  {
     title: "Profile",
     url: "/profile",
     icon: User,
@@ -47,7 +55,7 @@ const items = [
   },
 ]
 
-export function AppSidebar() {
+export function AppSidebar({ bookingsCount }: { bookingsCount?: number }) {
   return (
     <Sidebar>
       <SidebarContent>
@@ -56,9 +64,10 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {items.map((item, idx) => {
-                // Hardcoded notification numbers
                 let notification = null;
-                if (item.title === "Bookings") notification = 4;
+                if (item.title === "Bookings" && typeof bookingsCount === 'number' && bookingsCount > 0) {
+                  notification = bookingsCount;
+                }
                 return (
                   <SidebarMenuItem key={item.title + '-' + idx}>
                     <SidebarMenuButton asChild>

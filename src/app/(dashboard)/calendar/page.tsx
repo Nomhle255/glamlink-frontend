@@ -35,16 +35,14 @@ export default function Page() {
       setIsLoading(true);
       // Use the getCurrentStylistId to get the correct ID for API calls
       const slots = await getTimeSlotsByStylist();
-      
       // Convert slots to calendar events
       const calendarEvents: EventInput[] = slots.map((slot: Slot) => ({
         id: slot.id.toString(),
-        title: "Available",
-        start: `${slot.date}T${slot.startTime}`,
-        end: `${slot.date}T${slot.endTime}`,
+        title: slot.isBooked ? "Booked" : "Available",
+        start: slot.startTime,
+        end: slot.startTime, // If you have endTime, use it here; otherwise, use startTime for single-point events
         allDay: false,
       }));
-      
       setEvents(calendarEvents);
     } catch (err: any) {
       setError(`Failed to load time slots: ${err.message}`);
@@ -186,6 +184,7 @@ export default function Page() {
         eventClick={handleEventClick}
         eventContent={renderEventContent}
         height="auto"
+        timeZone="UTC"
       />
       <p className="mt-4 text-gray-500 text-sm">
         Click a day to set your available hours. Click an event to remove it.
