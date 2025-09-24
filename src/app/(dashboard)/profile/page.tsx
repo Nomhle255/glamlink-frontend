@@ -18,7 +18,7 @@ export default function Profile() {
   // Form fields
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [location, setLocation] = useState("");
   const [profilePic, setProfilePic] = useState<string | null>(null);
   const [paymentMethods, setPaymentMethods] = useState<string[]>([]);
@@ -49,66 +49,108 @@ export default function Profile() {
       setLoading(true);
       setError("");
       
-      console.log(`Fetching profile for user ID: ${user.id}`);
-      
       // Try to fetch complete user data from backend using user ID
       const profileData = await getUserProfileById(user.id);
-      console.log('Backend profile data received:', profileData);
       
       setProfile(profileData);
       
       // Set form fields with fetched data
       setName(profileData.name || "");
       setEmail(profileData.email || "");
-      setPhone(profileData.phone || profileData.phoneNumber || ""); // Handle both field names
+      setPhoneNumber(profileData.phoneNumber || ""); 
       setLocation(profileData.location || "");
       setProfilePic(profileData.profilePicture || null);
       setPaymentMethods(profileData.paymentMethods || []);
       
-      console.log('Profile loaded successfully from backend');
-      
     } catch (err: any) {
-      console.error('Failed to fetch profile from backend:', err);
-      
-      // Fallback to auth context data if backend fails
-      console.log('Using auth context data as fallback');
-      setName(user.name || "");
-      setEmail(user.email || "");
-      setPhone(user.phone || user.phoneNumber || ""); // Handle both field names
-      setLocation(user.location || "");
-      setProfilePic(user.profilePicture || null);
-      setPaymentMethods([]);
-      
-      // Only show error if it's not a 404 (missing endpoint)
-      if (!err.message.includes('not found')) {
-        setError(`Unable to load complete profile data: ${err.message}`);
-      }
+      setError(`Unable to load profile data: ${err.message}`);
     } finally {
       setLoading(false);
     }
   };
 
-  // Handle profile picture upload - DISABLED (read-only mode)
+  // Handle profile picture upload
   const handleProfilePicChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Just show a message that this is read-only for now
-    setMessage("Profile picture upload is disabled in view-only mode");
-    setTimeout(() => setMessage(""), 3000);
-    
-    // Clear the file input
-    if (e.target) {
-      e.target.value = '';
+    if (!user || !user.id) {
+      setError("User ID not available. Please log in again.");
+      return;
+    }
+
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        setError("File size must be less than 5MB");
+        return;
+      }
+      
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        setError("Please select a valid image file");
+        return;
+      }
+      
+      try {
+        setUploading(true);
+        setError("");
+        
+        try {
+          // Try to upload to backend using user ID
+          const profilePictureUrl = await uploadProfilePictureById(user.id, file);
+          setProfilePic(profilePictureUrl);
+          
+          // Update profile in backend with new picture URL
+          await updateUserProfileById(user.id, { profilePicture: profilePictureUrl });
+          
+          setMessage("Profile picture updated successfully!");
+        } catch (backendError: any) {
+          setError(`Failed to upload profile picture: ${backendError.message}`);
+        }
+        
+        setTimeout(() => setMessage(""), 3000);
+      } catch (err: any) {
+        setError(err.message);
+      } finally {
+        setUploading(false);
+      }
     }
   };
 
-  // Save profile changes - DISABLED (read-only mode)
+  // Save profile changes 
   const handleSave = async () => {
-    // Just show a message that this is read-only for now
-    setMessage("Profile is in view-only mode");
-    setShowModal(true);
-    setTimeout(() => {
-      setMessage("");
-      setShowModal(false);
-    }, 2000);
+    if (!user || !user.id) {
+      setError("User ID not available. Please log in again.");
+      return;
+    }
+
+    try {
+      setSaving(true);
+      setError("");
+      
+      const updatedProfile = {
+        name,
+        email,
+        phoneNumber,
+        location,
+        paymentMethods
+      };
+      
+      // Update via backend using user ID
+      const result = await updateUserProfileById(user.id, updatedProfile);
+      
+      setMessage("Profile updated successfully!");
+      setShowModal(true);
+      setTimeout(() => {
+        setMessage("");
+        setShowModal(false);
+      }, 2000);
+      
+    } catch (err: any) {
+      setError(`Failed to save profile changes: ${err.message}`);
+    } finally {
+      setSaving(false);
+    }
   };
 
   if (loading) {
@@ -126,7 +168,7 @@ export default function Profile() {
     <div className="pb-16 p-4">
       {/* Greeting */}
       <div className="mb-6 p-4 bg-pink-500 rounded shadow text-white">
-        <h2 className="text-lg font-bold">{greeting} {name || user?.name || 'User'}!</h2>
+        <h2 className="text-lg font-bold">{greeting} {name || 'User'}!</h2>
         <p className="text-white">
           Update your profile information below.
         </p>
@@ -147,26 +189,26 @@ export default function Profile() {
 
       {/* Profile Card */}
       <div className="bg-white p-6 rounded shadow max-w-md mx-auto flex flex-col items-center gap-4">
-        {/* Profile Picture - READ-ONLY */}
+        {/* Profile Picture - ENABLED for updates */}
         <div className="relative">
           <img
             src={profilePic || "/assets/Profile.png"}
             alt="Profile"
             className="w-24 h-24 rounded-full object-cover border"
           />
-          <div className="absolute bottom-0 right-0 bg-gray-400 text-white p-1 rounded-full cursor-not-allowed">
+          <label className={`absolute bottom-0 right-0 bg-pink-500 text-white p-1 rounded-full cursor-pointer hover:bg-pink-600 ${uploading ? 'opacity-50' : ''}`}>
             <input 
               type="file" 
               accept="image/*" 
               className="hidden" 
               onChange={handleProfilePicChange}
-              disabled={true}
+              disabled={uploading}
             />
-            ✎
-          </div>
+            {uploading ? '⏳' : '✎'}
+          </label>
         </div>
 
-        {/* Editable Fields - READ-ONLY MODE */}
+        {/* Editable Fields - ENABLED for updates */}
         <div className="w-full flex flex-col gap-3">
           <div>
             <label className="block text-sm font-medium text-gray-700">Name</label>
@@ -174,9 +216,9 @@ export default function Profile() {
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full border p-2 rounded focus:outline-none focus:ring-2 focus:ring-pink-300 bg-gray-50"
-              disabled={true}
-              placeholder="Loading..."
+              className="w-full border p-2 rounded focus:outline-none focus:ring-2 focus:ring-pink-300"
+              disabled={saving}
+              placeholder="Enter your name"
             />
           </div>
           <div>
@@ -185,20 +227,20 @@ export default function Profile() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full border p-2 rounded focus:outline-none focus:ring-2 focus:ring-pink-300 bg-gray-50"
-              disabled={true}
-              placeholder="Loading..."
+              className="w-full border p-2 rounded focus:outline-none focus:ring-2 focus:ring-pink-300"
+              disabled={saving}
+              placeholder="Enter your email"
             />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700">Phone</label>
             <input
               type="text"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              className="w-full border p-2 rounded focus:outline-none focus:ring-2 focus:ring-pink-300 bg-gray-50"
-              disabled={true}
-              placeholder="Not provided"
+              value={phoneNumber}
+              onChange={(e) => setPhoneNumber(e.target.value)}
+              className="w-full border p-2 rounded focus:outline-none focus:ring-2 focus:ring-pink-300"
+              disabled={saving}
+              placeholder="Enter your phone number"
             />
           </div>
           <div>
@@ -207,9 +249,9 @@ export default function Profile() {
               type="text"
               value={location}
               onChange={(e) => setLocation(e.target.value)}
-              className="w-full border p-2 rounded focus:outline-none focus:ring-2 focus:ring-pink-300 bg-gray-50"
-              disabled={true}
-              placeholder="Not provided"
+              className="w-full border p-2 rounded focus:outline-none focus:ring-2 focus:ring-pink-300"
+              disabled={saving}
+              placeholder="Enter your location"
             />
           </div>
           <div>
@@ -227,9 +269,9 @@ export default function Profile() {
                     );
                   }}
                   className="form-checkbox h-4 w-4 text-pink-600"
-                  disabled={true}
+                  disabled={saving}
                 />
-                <span className="ml-2 text-gray-600">Cash</span>
+                <span className="ml-2">Cash</span>
               </label>
               <label className="inline-flex items-center">
                 <input
@@ -243,21 +285,25 @@ export default function Profile() {
                     );
                   }}
                   className="form-checkbox h-4 w-4 text-pink-600"
-                  disabled={true}
+                  disabled={saving}
                 />
-                <span className="ml-2 text-gray-600">Credit Card</span>
+                <span className="ml-2">Credit Card</span>
               </label>
             </div>
           </div>
         </div>
 
-        {/* Save Button - READ-ONLY MODE */}
+        {/* Update Button */}
         <button
           onClick={handleSave}
           disabled={saving}
-          className="mt-4 w-full px-4 py-2 rounded transition bg-gray-400 text-white cursor-not-allowed"
+          className={`mt-4 w-full px-4 py-2 rounded transition ${
+            saving 
+              ? 'bg-gray-400 cursor-not-allowed' 
+              : 'bg-pink-500 hover:bg-pink-600'
+          } text-white`}
         >
-          View Only Mode
+          {saving ? 'Saving...' : 'Save Changes'}
         </button>
 
         {/* Success Message */}

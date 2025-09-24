@@ -63,27 +63,15 @@ export default function ServicesPage() {
       const processedServices = await Promise.all(
         Array.isArray(data) 
           ? data.map(async (item: any) => {
-              try {
-                const serviceDetails = await getServiceById(item.serviceId);
-                return {
-                  id: item.id,
-                  name: serviceDetails.name || `Service ${item.serviceId}`,
-                  price: item.price || 0,
-                  description: serviceDetails.description || `Service with ID: ${item.serviceId}`,
-                  duration: item.duration,
-                  serviceId: item.serviceId,
-                };
-              } catch (error) {
-                // If we can't fetch service details, use fallback
-                return {
-                  id: item.id,
-                  name: `Service ${item.serviceId}`,
-                  price: item.price || 0,
-                  description: `Service with ID: ${item.serviceId}`,
-                  duration: item.duration,
-                  serviceId: item.serviceId,
-                };
-              }
+              const serviceDetails = await getServiceById(item.serviceId);
+              return {
+                id: item.id,
+                name: serviceDetails.name,
+                price: item.price || 0,
+                description: serviceDetails.description,
+                duration: item.duration,
+                serviceId: item.serviceId,
+              };
             })
           : []
       );
@@ -193,11 +181,9 @@ export default function ServicesPage() {
 
     if (confirm('Are you sure you want to delete this service?')) {
       try {
-        // Use removeServiceFromStylist instead since backend expects stylistId and serviceId
         if (service.serviceId) {
           await removeServiceFromStylist(Number(user.id), service.serviceId);
         } else {
-          // Fallback: try to delete using the record ID format but with proper parameters
           await deleteStylistService(service.id);
         }
         
@@ -212,17 +198,11 @@ export default function ServicesPage() {
 
   // Helpers for display
   const getServiceName = (service: any): string => {
-    return (
-      service?.name ||
-      service?.service_name ||
-      service?.title ||
-      service?.serviceName ||
-      "Unknown Service"
-    );
+    return service?.name || "Unknown Service";
   };
 
   const getServicePrice = (service: any): number => {
-    return service?.price || service?.service_price || service?.cost || 0;
+    return service?.price || 0;
   };
 
   // UI states

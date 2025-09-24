@@ -7,8 +7,7 @@ export interface UserProfile {
   id: number;
   name: string;
   email: string;
-  phone?: string;
-  phoneNumber?: string; // Backend uses phoneNumber
+  phoneNumber?: string; 
   location?: string;
   profilePicture?: string;
   role?: string;
@@ -32,44 +31,13 @@ export const getUserProfileById = async (userId: number): Promise<UserProfile> =
   }
 
   try {
-    // Try multiple possible endpoints for user data
-    let response;
-    
-    // First try users endpoint
-    try {
-      response = await axios.get(`${API_URL}/users/${userId}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        }
-      });
-    } catch (firstError: any) {
-      if (firstError.response?.status === 404) {
-        // Try stylists endpoint if users endpoint doesn't exist
-        try {
-          response = await axios.get(`${API_URL}/stylists/${userId}`, {
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json',
-            }
-          });
-        } catch (secondError: any) {
-          if (secondError.response?.status === 404) {
-            // Try providers endpoint as final fallback
-            response = await axios.get(`${API_URL}/providers/${userId}`, {
-              headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json',
-              }
-            });
-          } else {
-            throw secondError;
-          }
-        }
-      } else {
-        throw firstError;
+    // Use only the working providers endpoint
+    const response = await axios.get(`${API_URL}/providers/${userId}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
       }
-    }
+    });
     
     return response.data;
   } catch (error: any) {
@@ -77,12 +45,12 @@ export const getUserProfileById = async (userId: number): Promise<UserProfile> =
       throw new Error('Unauthorized: Please log in again');
     }
     if (error.response?.status === 404) {
-      throw new Error('User not found');
+      throw new Error('Stylist not found');
     }
     if (error.code === 'ERR_NETWORK') {
       throw new Error('Network error: Please check your connection');
     }
-    throw new Error(error.response?.data?.message || 'Failed to fetch user profile');
+    throw new Error(error.response?.data?.message || 'Failed to fetch stylist profile');
   }
 };
 
@@ -94,44 +62,13 @@ export const updateUserProfileById = async (userId: number, profileData: Partial
   }
 
   try {
-    // Try multiple possible endpoints for user update
-    let response;
-    
-    // First try users endpoint
-    try {
-      response = await axios.put(`${API_URL}/users/${userId}`, profileData, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        }
-      });
-    } catch (firstError: any) {
-      if (firstError.response?.status === 404) {
-        // Try stylists endpoint if users endpoint doesn't exist
-        try {
-          response = await axios.put(`${API_URL}/stylists/${userId}`, profileData, {
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json',
-            }
-          });
-        } catch (secondError: any) {
-          if (secondError.response?.status === 404) {
-            // Try providers endpoint as final fallback
-            response = await axios.put(`${API_URL}/providers/${userId}`, profileData, {
-              headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json',
-              }
-            });
-          } else {
-            throw secondError;
-          }
-        }
-      } else {
-        throw firstError;
+    // Use only the working providers endpoint
+    const response = await axios.put(`${API_URL}/providers/${userId}`, profileData, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
       }
-    }
+    });
     
     return response.data;
   } catch (error: any) {
@@ -139,7 +76,7 @@ export const updateUserProfileById = async (userId: number, profileData: Partial
       throw new Error('Unauthorized: Please log in again');
     }
     if (error.response?.status === 404) {
-      throw new Error('User not found for update');
+      throw new Error('Stylist not found for update');
     }
     if (error.response?.status === 400) {
       throw new Error('Invalid profile data: Please check your inputs');
@@ -162,44 +99,13 @@ export const uploadProfilePictureById = async (userId: number, file: File): Prom
   formData.append('profilePicture', file);
 
   try {
-    // Try multiple possible endpoints for profile picture upload
-    let response;
-    
-    // First try users endpoint
-    try {
-      response = await axios.post(`${API_URL}/users/${userId}/upload-picture`, formData, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'multipart/form-data',
-        }
-      });
-    } catch (firstError: any) {
-      if (firstError.response?.status === 404) {
-        // Try stylists endpoint if users endpoint doesn't exist
-        try {
-          response = await axios.post(`${API_URL}/stylists/${userId}/upload-picture`, formData, {
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'multipart/form-data',
-            }
-          });
-        } catch (secondError: any) {
-          if (secondError.response?.status === 404) {
-            // Try providers endpoint as final fallback
-            response = await axios.post(`${API_URL}/providers/${userId}/upload-picture`, formData, {
-              headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'multipart/form-data',
-              }
-            });
-          } else {
-            throw secondError;
-          }
-        }
-      } else {
-        throw firstError;
+    // Use only the working providers endpoint
+    const response = await axios.post(`${API_URL}/providers/${userId}/upload-picture`, formData, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'multipart/form-data',
       }
-    }
+    });
     
     return response.data.profilePictureUrl;
   } catch (error: any) {

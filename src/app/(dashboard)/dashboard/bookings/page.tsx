@@ -7,30 +7,32 @@ import {
   rescheduleBooking,
   cancelBooking,
 } from "@/app/api/bookings";
+import { updateSlotBookedStatus } from "@/app/api/timeslots";
 import { getServiceById } from "@/app/api/stylists-service";
-import { getSlotById, Slot } from "@/app/api/slots";
+import { getSlotById, Slot, getTimeSlotsByStylist } from "@/app/api/timeslots";
 import { useAuth } from "@/context/AuthContext";
 
 // Define types for your booking data
 interface Booking {
   id: number;
-  serviceId?: number;
-  service_id?: number;
-  slotId?: number;
-  slot_id?: number;
+  serviceId: number;
+  slotId: number;
   service?: {
     name: string;
-  } | string;
-  serviceName?: string;
-  service_name?: string;
-  customerName?: string;
-  customer_name?: string;
-  status: BookingStatus | string; // Allow both enum and string for flexibility
+  };
+  customerName: string;
+  status: BookingStatus | string;
   slot?: {
     startTime: string;
   };
-  startTime?: string;
-  start_time?: string;
+  // Additional fields that might come from backend
+  datetime?: string;
+  scheduledTime?: string;
+  appointmentTime?: string;
+  bookedAt?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  [key: string]: any; // Allow for additional backend fields
 }
 
 enum BookingStatus {
@@ -53,7 +55,7 @@ export default function BookingsPage() {
   // Service names cache
   const [serviceNames, setServiceNames] = useState<{[key: number]: string}>({});
   
-  // Slot information cache
+  // Slot start time cache
   const [slotTimes, setSlotTimes] = useState<{[key: number]: string}>({});
   
   // Modal state
@@ -80,7 +82,7 @@ export default function BookingsPage() {
       
       setServiceNames(newServiceNames);
     } catch (error) {
-      console.error('Failed to fetch service names:', error);
+      // Failed to fetch service names
     }
   };
 
@@ -88,13 +90,11 @@ export default function BookingsPage() {
   const fetchSlotTimes = async (slotIds: number[]) => {
     const newSlotTimes = { ...slotTimes };
     const idsToFetch = slotIds.filter(id => !newSlotTimes[id]);
-    
     if (idsToFetch.length === 0) return;
 
     try {
       const promises = idsToFetch.map(id => getSlotById(id));
       const slots = await Promise.all(promises);
-      
       slots.forEach((slot, index) => {
         // Handle different possible time field names
         const startTime = slot?.startTime || slot?.start_time || slot?.bookingTime || slot?.booking_time;
@@ -102,7 +102,6 @@ export default function BookingsPage() {
           newSlotTimes[idsToFetch[index]] = startTime;
         }
       });
-      
       setSlotTimes(newSlotTimes);
     } catch (error) {
       console.error('Failed to fetch slot times:', error);
@@ -122,21 +121,21 @@ export default function BookingsPage() {
       const data = await getBookingsByStylist(Number(user.id));
       setBookings(data);
       setIsError(false);
-      
+
       // Extract service IDs and fetch service names
       const serviceIds = data
-        .map((booking: Booking) => booking.serviceId || booking.service_id)
+        .map((booking: Booking) => booking.serviceId)
         .filter((id: any): id is number => typeof id === 'number');
-      
+
       if (serviceIds.length > 0) {
         await fetchServiceNames(serviceIds);
       }
 
       // Extract slot IDs and fetch slot times
       const slotIds = data
-        .map((booking: Booking) => booking.slotId || booking.slot_id)
+        .map((booking: Booking) => booking.slotId)
         .filter((id: any): id is number => typeof id === 'number');
-      
+
       if (slotIds.length > 0) {
         await fetchSlotTimes(slotIds);
       }
@@ -158,9 +157,14 @@ export default function BookingsPage() {
   const confirmBooking = async (id: number) => {
     try {
       await updateBookingStatus(id, BookingStatus.CONFIRMED);
+      // Find the booking to get its slotId
+      const booking = bookings.find(b => b.id === id);
+      if (booking && booking.slotId) {
+        await updateSlotBookedStatus(booking.slotId, true);
+      }
       await fetchBookings(); // Refresh bookings
     } catch (error) {
-      console.error('Failed to confirm booking:', error);
+      // handle error
     }
   };
 
@@ -169,7 +173,7 @@ export default function BookingsPage() {
       await cancelBooking(id);
       await fetchBookings(); // Refresh bookings
     } catch (error) {
-      console.error('Failed to cancel booking:', error);
+      // Failed to cancel booking
     }
   };
 
@@ -178,7 +182,7 @@ export default function BookingsPage() {
       await rescheduleBooking(id, slotId);
       await fetchBookings(); // Refresh bookings
     } catch (error) {
-      console.error('Failed to reschedule booking:', error);
+      // Failed to reschedule booking
     }
   };
 
@@ -187,7 +191,7 @@ export default function BookingsPage() {
       await updateBookingStatus(id, BookingStatus.COMPLETED);
       await fetchBookings(); // Refresh bookings
     } catch (error) {
-      console.error('Failed to complete booking:', error);
+      // Failed to complete booking
     }
   };
 
@@ -201,77 +205,71 @@ export default function BookingsPage() {
 
   // Helper functions to safely extract booking data
   const getServiceName = (booking: Booking): string => {
-    // First, try to get service name from the fetched service names using serviceId
-    const serviceId = booking.serviceId || booking.service_id;
-    if (serviceId && serviceNames[serviceId]) {
-      return serviceNames[serviceId];
+    // Try to get service name from the fetched service names using serviceId
+    if (booking.serviceId && serviceNames[booking.serviceId]) {
+      return serviceNames[booking.serviceId];
     }
     
-    // Fallback to existing service data in booking
     if (booking.service && typeof booking.service === 'object' && 'name' in booking.service) {
       return booking.service.name;
     }
-    if (typeof booking.service === 'string') {
-      return booking.service;
-    }
-    return (
-      booking.serviceName ||
-      booking.service_name ||
-      'Unknown Service'
-    );
+    
+    return 'Unknown Service';
   };
 
   const getCustomerName = (booking: Booking): string => {
-    return booking.customerName || 
-           booking.customer_name || 
-           'Unknown Customer';
+    return booking.customerName || 'Unknown Customer';
   };
 
   const getStartTime = (booking: Booking): string => {
-    // First, try to get time from the fetched slot times using slotId
-    const slotId = booking.slotId || booking.slot_id;
-    if (slotId && slotTimes[slotId]) {
-      return slotTimes[slotId];
+    // Try to get from fetched slotTimes using slotId
+    if (booking.slotId && slotTimes[booking.slotId]) {
+      return slotTimes[booking.slotId];
     }
-    
-    // Fallback to existing time data in booking
-    return booking.slot?.startTime || 
-           booking.startTime || 
-           booking.start_time || 
-           'Unknown Time';
+    return '';
   };
 
-  // Helper function to format start time for display
+  // Helper function to format booking date for display
+  const formatBookingDate = (booking: Booking): string => {
+    // Prefer slot's startTime/start_time as the booking date, using slotTimes cache
+    const slotDateStr = getStartTime(booking) || booking.bookedAt || booking.createdAt || booking.updatedAt;
+    if (slotDateStr) {
+      const date = new Date(slotDateStr);
+      if (!isNaN(date.getTime())) {
+        // Display as UTC, no timezone conversion
+        return date.toLocaleString('en-US', { timeZone: 'UTC' }) + ' UTC';
+      }
+    }
+    return '';
+  };
+
+  // Helper function to format booking time for display (just time part)
+  const formatBookingTime = (booking: Booking): string => {
+    // Use slot's start time from slotTimes cache or fallback
+    const startTime = getStartTime(booking);
+    if (startTime === 'Unknown Time') {
+      return 'Time TBD';
+    }
+    const date = new Date(startTime);
+    if (!isNaN(date.getTime())) {
+      // Display as UTC, no timezone conversion
+      return date.toLocaleTimeString('en-US', { timeZone: 'UTC', hour: '2-digit', minute: '2-digit', hour12: true }) + ' UTC';
+    }
+    return '';
+  };
+
+  // Helper function to format start time for display (full date/time - kept for compatibility)
   const formatStartTime = (booking: Booking): string => {
     const startTime = getStartTime(booking);
     if (startTime === 'Unknown Time') {
       return 'Unknown Time';
     }
-    
-    try {
-      // Try to parse and format the time
-      const date = new Date(startTime);
-      if (isNaN(date.getTime())) {
-        // If it's not a valid date, return as-is
-        return startTime;
-      }
-      
-      // Format as UTC time to match what was saved in database
-      const options: Intl.DateTimeFormatOptions = {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-        timeZone: 'UTC',
-        hour12: false
-      };
-      
-      return date.toLocaleString('en-GB', options) + ' UTC';
-    } catch (error) {
-      // If parsing fails, return the original string
-      return startTime;
+    const date = new Date(startTime);
+    if (!isNaN(date.getTime())) {
+      // Display as UTC, no timezone conversion
+      return date.toLocaleString('en-US', { timeZone: 'UTC' }) + ' UTC';
     }
+    return '';
   };
 
   // Tabs by service - computed after data loads with null safety
@@ -316,6 +314,42 @@ export default function BookingsPage() {
     setSelectedTime("");
   };
 
+  const handleRescheduleClick = (booking: Booking) => {
+    setRescheduleBookingId(booking.id);
+    
+    // Get the current booking's start time
+    const startTime = getStartTime(booking);
+    
+    if (startTime && startTime !== 'Unknown Time') {
+      try {
+        // Parse the start time
+        const date = new Date(startTime);
+        
+        if (!isNaN(date.getTime())) {
+          // Extract date in YYYY-MM-DD format for the date input
+          const dateStr = date.toISOString().split('T')[0];
+          setSelectedDate(dateStr);
+          
+          // Extract time in HH:mm format for the time input
+          const timeStr = date.toTimeString().slice(0, 5);
+          setSelectedTime(timeStr);
+        } else {
+          // If date parsing fails, reset to empty
+          setSelectedDate("");
+          setSelectedTime("");
+        }
+      } catch (error) {
+        // If any error occurs, reset to empty
+        setSelectedDate("");
+        setSelectedTime("");
+      }
+    } else {
+      // If no start time available, reset to empty
+      setSelectedDate("");
+      setSelectedTime("");
+    }
+  };
+
   const handleSaveReschedule = () => {
     if (!rescheduleBookingId || !selectedDate || !selectedTime) return;
 
@@ -324,7 +358,6 @@ export default function BookingsPage() {
     
     // Send the datetime directly to match backend expectations
     // The backend server.patch('/bookings/:id/reschedule') probably expects new time info
-    console.log('Rescheduling booking', rescheduleBookingId, 'to datetime:', newDateTime);
     
     // Use the datetime as the "slotId" or modify rescheduleBookingAction to handle datetime
     const timeBasedId = Math.floor(new Date(newDateTime).getTime() / 1000);
@@ -387,9 +420,9 @@ export default function BookingsPage() {
                   <span className="font-medium">Client:</span>{" "}
                   {getCustomerName(b)}
                 </div>
-                <div className="text-gray-500 mb-1">
-                  <span className="font-medium">Date/Time:</span>{" "}
-                  {formatStartTime(b)}
+                <div className="text-gray-600 mb-1">
+                  <span className="font-medium">Booked Time:</span>{" "}
+                  {formatBookingDate(b)}
                 </div>
                 <div className="mb-1">
                   <span className="font-medium">Status:</span>
@@ -419,7 +452,7 @@ export default function BookingsPage() {
                 <button
                   className="bg-blue-100 text-blue-700 px-3 py-1 rounded hover:bg-blue-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                   disabled={b.status === "CONFIRMED" || b.status === "COMPLETED"}
-                  onClick={() => setRescheduleBookingId(b.id)}
+                  onClick={() => handleRescheduleClick(b)}
                 >
                   Reschedule
                 </button>
