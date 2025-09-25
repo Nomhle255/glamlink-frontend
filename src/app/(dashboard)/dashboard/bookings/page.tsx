@@ -227,26 +227,7 @@ export default function BookingsPage() {
     }
   }, [services, selectedTab]);
 
-  // Authentication and loading checks
-  if (loading) {
-    return (
-      <div className="p-6">
-        <div>Loading authentication...</div>
-      </div>
-    );
-  }
-
-  if (!isAuthenticated || !user) {
-    return (
-      <div className="p-6">
-        <div>Please log in to view bookings.</div>
-      </div>
-    );
-  }
-
-  if (isLoading) return <div>Loading bookings...</div>;
-  if (isError) return <div>Error loading bookings.</div>;
-
+  // Reschedule helper functions
   const handleCancelReschedule = () => {
     setRescheduleBookingId(null);
     setSelectedDate("");
@@ -297,7 +278,27 @@ export default function BookingsPage() {
     rescheduleBookingAction(rescheduleBookingId, newDateTime);
     handleCancelReschedule();
   };
-  
+
+  // Authentication and loading checks
+  if (loading) {
+    return (
+      <div className="p-6">
+        <div>Loading authentication...</div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated || !user) {
+    return (
+      <div className="p-6">
+        <div>Please log in to view bookings.</div>
+      </div>
+    );
+  }
+
+  if (isLoading) return <div>Loading bookings...</div>;
+  if (isError) return <div>Error loading bookings.</div>;
+
   // Filter bookings by selected service
   const serviceBookings = selectedTab 
     ? bookings.filter((b: Booking) => getServiceName(b) === selectedTab)
@@ -449,6 +450,7 @@ export default function BookingsPage() {
           </div>
         </div>
       )}
+
     </div>
   );
 }

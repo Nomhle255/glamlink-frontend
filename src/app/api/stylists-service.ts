@@ -99,4 +99,67 @@ export const deleteStylistService = async (id: number) => {
   return res.data;
 };
 
+// Create a new service and add it to stylist
+export const createServiceAndAddToStylist = async (data: {
+  stylistId: number;
+  serviceName: string;
+  price: number;
+  description?: string;
+  duration?: number;
+}) => {
+  try {
+    // First, create the new service
+    const serviceRes = await apiClient.post(`/services`, {
+      name: data.serviceName,
+      description: data.description || `${data.serviceName} service`,
+    });
+    
+    const newServiceId = serviceRes.data.id;
+    
+    // Then, link the service to the stylist
+    const linkRes = await apiClient.post(`/stylist-services`, {
+      stylistId: data.stylistId,
+      serviceId: newServiceId,
+      price: data.price,
+      duration: data.duration
+    });
+    
+    return linkRes.data;
+  } catch (error) {
+    console.error('Error creating service and linking to stylist:', error);
+    throw error;
+  }
+};
+
+// Update both service name and stylist service data
+export const updateStylistServiceWithName = async (stylistServiceId: number, serviceId: number, data: {
+  serviceName?: string;
+  price?: number;
+  duration?: number;
+}) => {
+  try {
+    // If service name needs to be updated, update the service record
+    if (data.serviceName && serviceId) {
+      await apiClient.put(`/services/${serviceId}`, {
+        name: data.serviceName
+      });
+    }
+    
+    // Update the stylist service record (price, duration)
+    const updateData: any = {};
+    if (data.price !== undefined) updateData.price = data.price;
+    if (data.duration !== undefined) updateData.duration = data.duration;
+    
+    if (Object.keys(updateData).length > 0) {
+      const res = await apiClient.put(`/stylist-services/${stylistServiceId}`, updateData);
+      return res.data;
+    }
+    
+    return { success: true };
+  } catch (error) {
+    console.error('Error updating stylist service with name:', error);
+    throw error;
+  }
+};
+
 

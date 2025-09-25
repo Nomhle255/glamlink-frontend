@@ -61,8 +61,10 @@ export const updateUserProfileById = async (userId: number, profileData: Partial
     throw new Error('No authentication token found');
   }
 
+  // Log the data being sent for debugging
+  console.log('Updating profile with data:', profileData);
+
   try {
-    // Use only the working providers endpoint
     const response = await axios.put(`${API_URL}/providers/${userId}`, profileData, {
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -72,6 +74,8 @@ export const updateUserProfileById = async (userId: number, profileData: Partial
     
     return response.data;
   } catch (error: any) {
+    // Log the full error for debugging
+    console.error('Profile update error:', error.response?.data || error.message);
     if (error.response?.status === 401) {
       throw new Error('Unauthorized: Please log in again');
     }

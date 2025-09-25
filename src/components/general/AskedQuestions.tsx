@@ -32,7 +32,7 @@ export default function FAQSection() {
           {/* Left Image */}
           <div className="w-full lg:w-1/2">
             <Image
-              src="/assets/hair.png.jpg"
+              src="/assets/cut.png"
               alt="FAQ section"
               width={600}
               height={400}

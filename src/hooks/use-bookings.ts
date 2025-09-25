@@ -7,7 +7,6 @@ import {
   getBookingsByProvider,
   getBookingById,
   updateBookingStatus,
-  rescheduleBooking,
   cancelBooking,
 } from "@/app/api/bookings";
 enum BookingStatus {
@@ -54,16 +53,7 @@ export function useUpdateBookingStatus() {
   });
 }
 
-export function useRescheduleBooking() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: ({ id, slotId, stylistId, status }: { id: number; slotId: string; stylistId: number; status?: string }) =>
-      rescheduleBooking(id, slotId, stylistId, status),
-    onSuccess: (_, variables) => {
-      qc.invalidateQueries({ queryKey: ["booking", variables.id] });
-    },
-  });
-}
+
 
 export function useCancelBooking() {
   const qc = useQueryClient();

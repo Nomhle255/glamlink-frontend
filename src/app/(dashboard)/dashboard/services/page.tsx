@@ -3,12 +3,13 @@
 import React, { useState, useEffect } from "react";
 import {
   addServiceToStylist,
-  getServices,
   getServicesForStylist,
   getServiceById,
   updateStylistService,
   removeServiceFromStylist,
   deleteStylistService,
+  createServiceAndAddToStylist,
+  updateStylistServiceWithName,
   Service,
 } from "@/app/api/stylists-service";
 import { useAuth } from "@/context/AuthContext";
@@ -17,20 +18,19 @@ export default function ServicesPage() {
   const { user, isAuthenticated, loading } = useAuth();
 
   const [services, setServices] = useState<Service[]>([]);
-  const [allServices, setAllServices] = useState<Service[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isError, setIsError] = useState(false);
 
   // Modal state for add service
   const [showAddModal, setShowAddModal] = useState(false);
-  const [selectedService, setSelectedService] = useState("");
+  const [serviceName, setServiceName] = useState("");
   const [price, setPrice] = useState("");
   const [isCreating, setIsCreating] = useState(false);
 
   // Modal state for edit service
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingService, setEditingService] = useState<any>(null);
-  const [editSelectedService, setEditSelectedService] = useState("");
+  const [editServiceName, setEditServiceName] = useState("");
   const [editPrice, setEditPrice] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
 
@@ -85,50 +85,30 @@ export default function ServicesPage() {
     }
   };
 
-  // Fetch all services for dropdown
-  const fetchAllServices = async () => {
-    try {
-      const data = await getServices();
-      setAllServices(Array.isArray(data) ? data : []);
-    } catch (error) {
-      // Error fetching all services
-    }
-  };
-
   // Initial load
   useEffect(() => {
     if (!loading && isAuthenticated && user) {
       // Fetch services for this specific stylist from stylist-services table
       fetchServices();
-      // Also fetch all available services for the dropdown
-      fetchAllServices();
     }
   }, [user, loading, isAuthenticated]);
 
   // Handle add service
   const handleAddService = async () => {
-    if (!selectedService || !price || !user) return;
+    if (!serviceName || !price || !user) return;
 
     try {
       setIsCreating(true);
 
-      const selectedServiceObj = allServices.find(
-        (service) => service.name === selectedService
-      );
-      if (!selectedServiceObj) {
-        alert("Selected service not found");
-        return;
-      }
-
       const serviceData = {
         stylistId: Number(user.id),
-        serviceId: Number(selectedServiceObj.id),
+        serviceName: serviceName,
         price: Number(price),
       };
 
-      await addServiceToStylist(serviceData);
+      await createServiceAndAddToStylist(serviceData);
 
-      setSelectedService("");
+      setServiceName("");
       setPrice("");
       setShowAddModal(false);
       await fetchServices();
@@ -142,26 +122,30 @@ export default function ServicesPage() {
   // Handle edit service
   const handleEditService = (service: any) => {
     setEditingService(service);
-    setEditSelectedService(service.serviceId?.toString() || "");
+    setEditServiceName(getServiceName(service));
     setEditPrice(service.price?.toString() || "");
     setShowEditModal(true);
   };
 
   // Handle update service
   const handleUpdateService = async () => {
-    if (!editSelectedService || !editPrice || !user || !editingService) return;
+    if (!editServiceName || !editPrice || !user || !editingService) return;
 
     setIsUpdating(true);
     try {
-      const result = await updateStylistService(editingService.id, {
-        serviceId: parseInt(editSelectedService),
-        price: parseFloat(editPrice),
-      });
+      const result = await updateStylistServiceWithName(
+        editingService.id, 
+        editingService.serviceId,
+        {
+          serviceName: editServiceName,
+          price: parseFloat(editPrice),
+        }
+      );
 
       alert("Service updated successfully!");
       setShowEditModal(false);
       setEditingService(null);
-      setEditSelectedService("");
+      setEditServiceName("");
       setEditPrice("");
       fetchServices(); // Refresh the list
     } catch (error: any) {
@@ -264,18 +248,13 @@ export default function ServicesPage() {
                 <label className="block text-sm font-medium mb-1">
                   Service Name
                 </label>
-                <select
+                <input
+                  type="text"
                   className="w-full border p-2 rounded"
-                  value={selectedService}
-                  onChange={(e) => setSelectedService(e.target.value)}
-                >
-                  <option value="">Select a service</option>
-                  {allServices.map((service) => (
-                    <option key={service.id} value={service.name}>
-                      {service.name}
-                    </option>
-                  ))}
-                </select>
+                  placeholder="Enter service name"
+                  value={serviceName}
+                  onChange={(e) => setServiceName(e.target.value)}
+                />
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Price</label>
@@ -289,9 +268,9 @@ export default function ServicesPage() {
               </div>
               <button
                 type="submit"
-                disabled={isCreating || !selectedService || !price}
+                disabled={isCreating || !serviceName || !price}
                 className={`font-semibold px-5 py-2 rounded shadow mt-2 ${
-                  isCreating || !selectedService || !price
+                  isCreating || !serviceName || !price
                     ? "bg-gray-400 cursor-not-allowed text-gray-600"
                     : "bg-pink-500 hover:bg-pink-600 text-white"
                 }`}
@@ -377,18 +356,13 @@ export default function ServicesPage() {
                 <label className="block text-sm font-medium mb-1">
                   Service Name
                 </label>
-                <select
+                <input
+                  type="text"
                   className="w-full border p-2 rounded"
-                  value={editSelectedService}
-                  onChange={(e) => setEditSelectedService(e.target.value)}
-                >
-                  <option value="">Select a service</option>
-                  {allServices.map((service) => (
-                    <option key={service.id} value={service.id}>
-                      {service.name}
-                    </option>
-                  ))}
-                </select>
+                  placeholder="Enter service name"
+                  value={editServiceName}
+                  onChange={(e) => setEditServiceName(e.target.value)}
+                />
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Price</label>
@@ -406,7 +380,7 @@ export default function ServicesPage() {
                   onClick={() => {
                     setShowEditModal(false);
                     setEditingService(null);
-                    setEditSelectedService("");
+                    setEditServiceName("");
                     setEditPrice("");
                   }}
                   className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded hover:bg-gray-50"
@@ -415,9 +389,9 @@ export default function ServicesPage() {
                 </button>
                 <button
                   type="submit"
-                  disabled={isUpdating || !editSelectedService || !editPrice}
+                  disabled={isUpdating || !editServiceName || !editPrice}
                   className={`flex-1 font-semibold px-4 py-2 rounded ${
-                    isUpdating || !editSelectedService || !editPrice
+                    isUpdating || !editServiceName || !editPrice
                       ? "bg-gray-400 cursor-not-allowed text-gray-600"
                       : "bg-pink-500 hover:bg-pink-600 text-white"
                   }`}

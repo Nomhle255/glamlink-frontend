@@ -254,43 +254,6 @@ export default function Profile() {
               placeholder="Enter your location"
             />
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Payment Method</label>
-            <div className="flex gap-4">
-              <label className="inline-flex items-center">
-                <input
-                  type="checkbox"
-                  checked={paymentMethods.includes("cash")}
-                  onChange={e => {
-                    setPaymentMethods(prev =>
-                      e.target.checked
-                        ? [...prev, "cash"]
-                        : prev.filter(m => m !== "cash")
-                    );
-                  }}
-                  className="form-checkbox h-4 w-4 text-pink-600"
-                  disabled={saving}
-                />
-                <span className="ml-2">Cash</span>
-              </label>
-              <label className="inline-flex items-center">
-                <input
-                  type="checkbox"
-                  checked={paymentMethods.includes("credit card")}
-                  onChange={e => {
-                    setPaymentMethods(prev =>
-                      e.target.checked
-                        ? [...prev, "credit card"]
-                        : prev.filter(m => m !== "credit card")
-                    );
-                  }}
-                  className="form-checkbox h-4 w-4 text-pink-600"
-                  disabled={saving}
-                />
-                <span className="ml-2">Credit Card</span>
-              </label>
-            </div>
-          </div>
         </div>
 
         {/* Update Button */}

@@ -129,7 +129,7 @@ export default function page() {
                   Service: {b.serviceDisplayName}
                 </p>
                 <p className="text-xs text-gray-400">
-                  {(b.slotDate || b.date || b.bookingDate || '').slice(0, 10)} {b.time || ''}
+                  Booking Date: {(b.slotDate || b.date || b.bookingDate || '').slice(0, 10)} {b.time || ''}
                 </p>
               </div>
               <div className="text-right">
