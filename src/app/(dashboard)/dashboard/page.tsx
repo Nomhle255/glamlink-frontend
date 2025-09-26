@@ -19,9 +19,10 @@ export default function page() {
     setProviderName(user?.name || "Service Provider");
   }, []);
 
-  const stylistId = typeof window !== 'undefined' ? getCurrentStylistId() : null;
-  const { data: bookings = [], isLoading: bookingsLoading } = useBookings(stylistId || 0);
-  const { data: stylistServices = [], isLoading: servicesLoading } = useStylistsServices(stylistId || 0);
+  const stylistIdRaw = typeof window !== 'undefined' ? getCurrentStylistId() : null;
+  const stylistId = stylistIdRaw !== null && stylistIdRaw !== undefined ? String(stylistIdRaw) : "";
+  const { data: bookings = [], isLoading: bookingsLoading } = useBookings(stylistId);
+  const { data: stylistServices = [], isLoading: servicesLoading } = useStylistsServices(stylistId || "");
   const { data: allServices = [], isLoading: allServicesLoading } = useAllServices();
 
   // Map serviceId to service name for bookings and fetch slot start time
@@ -32,15 +33,15 @@ export default function page() {
           let slotDate = undefined;
           if (b.slotId || b.slot_id) {
             try {
-              const slot = await getSlotById(Number(b.slotId || b.slot_id));
+              const slot = await getSlotById(b.slotId || b.slot_id);
               slotDate = slot.startTime || slot.start_time || slot.date;
             } catch (e) {
-              
+              // handle error
             }
           }
-          const stylistService = stylistServices.find((s: any) => Number((s as any).serviceId ?? (s as any).service_id) === Number(b.serviceId ?? b.service_id));
+          const stylistService = stylistServices.find((s: any) => String((s as any).serviceId ?? (s as any).service_id) === String(b.serviceId ?? b.service_id));
           const mainServiceId = stylistService ? (stylistService as any).serviceId ?? (stylistService as any).service_id : b.serviceId ?? b.service_id;
-          const service = allServices.find((s: any) => Number(s.id) === Number(mainServiceId));
+          const service = allServices.find((s: any) => String(s.id) === String(mainServiceId));
           const date = b.date || b.bookingDate || slotDate;
           return {
             ...b,

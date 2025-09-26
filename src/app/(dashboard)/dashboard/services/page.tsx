@@ -57,13 +57,13 @@ export default function ServicesPage() {
       setIsLoading(true);
       setIsError(false);
 
-      const data = await getServicesForStylist(user.id);
+  const data = await getServicesForStylist(String(user.id));
 
       // For each stylist service, fetch the service details
       const processedServices = await Promise.all(
         Array.isArray(data) 
           ? data.map(async (item: any) => {
-              const serviceDetails = await getServiceById(item.serviceId);
+              const serviceDetails = await getServiceById(String(item.serviceId));
               return {
                 id: item.id,
                 name: serviceDetails.name,
@@ -101,7 +101,7 @@ export default function ServicesPage() {
       setIsCreating(true);
 
       const serviceData = {
-        stylistId: Number(user.id),
+        stylistId: String(user.id),
         serviceName: serviceName,
         price: Number(price),
       };
@@ -166,7 +166,7 @@ export default function ServicesPage() {
     if (confirm('Are you sure you want to delete this service?')) {
       try {
         if (service.serviceId) {
-          await removeServiceFromStylist(Number(user.id), service.serviceId);
+          await removeServiceFromStylist(String(user.id), String(service.serviceId));
         } else {
           await deleteStylistService(service.id);
         }
@@ -266,6 +266,7 @@ export default function ServicesPage() {
                   onChange={(e) => setPrice(e.target.value)}
                 />
               </div>
+              {/* Duration input removed */}
               <button
                 type="submit"
                 disabled={isCreating || !serviceName || !price}

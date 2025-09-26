@@ -4,7 +4,7 @@ const API_URL = 'http://localhost:8080';
 
 // Profile interface
 export interface UserProfile {
-  id: number;
+  id: string;
   name: string;
   email: string;
   phoneNumber?: string; 
@@ -24,7 +24,7 @@ export interface UserProfile {
 }
 
 // Get user profile by user ID
-export const getUserProfileById = async (userId: number): Promise<UserProfile> => {
+export const getUserProfileById = async (userId: string): Promise<UserProfile> => {
   const token = localStorage.getItem('token');
   if (!token) {
     throw new Error('No authentication token found');
@@ -55,7 +55,7 @@ export const getUserProfileById = async (userId: number): Promise<UserProfile> =
 };
 
 // Update user profile by user ID
-export const updateUserProfileById = async (userId: number, profileData: Partial<UserProfile>): Promise<UserProfile> => {
+export const updateUserProfileById = async (userId: string, profileData: Partial<UserProfile>): Promise<UserProfile> => {
   const token = localStorage.getItem('token');
   if (!token) {
     throw new Error('No authentication token found');
@@ -93,7 +93,7 @@ export const updateUserProfileById = async (userId: number, profileData: Partial
 };
 
 // Upload profile picture for user by ID
-export const uploadProfilePictureById = async (userId: number, file: File): Promise<string> => {
+export const uploadProfilePictureById = async (userId: string, file: File): Promise<string> => {
   const token = localStorage.getItem('token');
   if (!token) {
     throw new Error('No authentication token found');

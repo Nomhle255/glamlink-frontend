@@ -1,5 +1,5 @@
 // Update slot's booked status (is_available)
-export const updateSlotBookedStatus = async (slotId: number, isBooked: boolean): Promise<void> => {
+export const updateSlotBookedStatus = async (slotId: string, isBooked: boolean): Promise<void> => {
   const token = localStorage.getItem('token');
   if (!token) throw new Error('No authentication token found');
 
@@ -25,12 +25,12 @@ const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080" a
 
 // Interface for slot data (simplified - start_time only)
 export interface Slot {
-  id: number;
+  id: string;
   startTime?: string;  // Frontend prefers camelCase
   start_time?: string; // Backend returns snake_case
   date?: string;
   isAvailable?: boolean;
-  stylistId?: number;
+  stylistId?: string;
   createdAt?: string;
   [key: string]: any; // Allow for additional backend fields
 }
@@ -40,14 +40,14 @@ export interface CreateSlotData {
   startTime: string;
   endTime: string;
   date: string;
-  stylistId: number;
+  stylistId: string;
 }
 
 // Get slot by ID (start_time only)
 // 🔄 UPDATED: Now only retrieving start_time to avoid backend schema issues
 // Previous issue: end_time field doesn't exist in database
 // Solution: Frontend only uses start_time from slot data
-export const getSlotById = async (id: number): Promise<Slot> => {
+export const getSlotById = async (id: string): Promise<Slot> => {
   const token = localStorage.getItem('token');
   
   try {
@@ -65,7 +65,7 @@ export const getSlotById = async (id: number): Promise<Slot> => {
 };
 
 // Get all available slots for a stylist
-export const getAvailableSlots = async (stylistId: number): Promise<Slot[]> => {
+export const getAvailableSlots = async (stylistId: string): Promise<Slot[]> => {
   const token = localStorage.getItem('token');
   const res = await axios.get(`${API_URL}/slots?stylistId=${stylistId}`, {
     headers: {
@@ -129,7 +129,7 @@ export const createTimeSlot = async (slotData: CreateSlotData): Promise<Slot> =>
 };
 
 // Get all time slots for a stylist
-export const getTimeSlotsByStylist = async (providedStylistId?: number): Promise<Slot[]> => {
+export const getTimeSlotsByStylist = async (providedStylistId?: string): Promise<Slot[]> => {
   const token = localStorage.getItem('token');
   if (!token) {
     throw new Error('No authentication token found');

@@ -33,16 +33,23 @@ export default function Page() {
   const loadTimeSlots = async () => {
     try {
       setIsLoading(true);
-      // Use the getCurrentStylistId to get the correct ID for API calls
-      const slots = await getTimeSlotsByStylist();
-      // Convert slots to calendar events
-      const calendarEvents: EventInput[] = slots.map((slot: Slot) => ({
-        id: slot.id.toString(),
-        title: slot.isBooked ? "Booked" : "Available",
-        start: slot.startTime,
-        end: slot.startTime, // If you have endTime, use it here; otherwise, use startTime for single-point events
-        allDay: false,
-      }));
+      // Always use stylistId as string
+      const stylistId = String(user?.id);
+      const slots = await getTimeSlotsByStylist(stylistId);
+      console.log('Fetched slots:', slots);
+      // Convert slots to calendar events, handle both camelCase and snake_case
+      const calendarEvents: EventInput[] = slots.map((slot: Slot) => {
+        // Prefer camelCase, fallback to snake_case
+        const start = slot.startTime || slot.start_time || slot.bookingTime || '';
+        const end = slot.endTime || slot.end_time || slot.bookingTime || start;
+        return {
+          id: String(slot.id),
+          title: slot.isBooked ? "Booked" : "Available",
+          start,
+          end,
+          allDay: false,
+        };
+      });
       setEvents(calendarEvents);
     } catch (err: any) {
       setError(`Failed to load time slots: ${err.message}`);

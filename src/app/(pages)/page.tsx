@@ -1,6 +1,5 @@
 import AboutSection from '@/components/general/AboutUs'
 import FAQSection from '@/components/general/AskedQuestions'
-import FeaturesSection from '@/components/general/FeaturesSection'
 import HeroSection from '@/components/general/HeroSection'
 import SubscriptionPlans from "@/components/general/SubscriptionPlans";
 import React from 'react'
@@ -10,7 +9,6 @@ export default function page() {
     <div>
       <HeroSection />
       <AboutSection />
-      <FeaturesSection />
       <SubscriptionPlans />
       <FAQSection />
     </div>

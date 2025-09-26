@@ -13,7 +13,7 @@ export default function PaymentMethodPage() {
   const { user } = useAuth();
   const [paymentName, setMethodName] = useState("");
   const [accountNumber, setAccountNumber] = useState("");
-  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [editingMethodName, setEditingMethodName] = useState("");
   const [editingAccountNumber, setEditingAccountNumber] = useState("");
   const [bookingFee, setBookingFee] = useState<number | null>(null);
@@ -33,7 +33,7 @@ export default function PaymentMethodPage() {
     const fetchStylist = async () => {
       if (!user?.id) return;
       setMethodsLoading(true);
-      const data = await fetchStylistPaymentMethods(user.id);
+      const data = await fetchStylistPaymentMethods(String(user.id));
       setStylistMethods(Array.isArray(data) ? data : []);
       setMethodsLoading(false);
     };
@@ -67,11 +67,11 @@ export default function PaymentMethodPage() {
     setError("");
     try {
       if (!user?.id) throw new Error("User not found");
-      await savePaymentMethod(user.id, paymentName, accountNumber);
+      await savePaymentMethod(String(user.id), paymentName, accountNumber);
       setPaymentSuccess("Payment method saved!");
       setMethodName("");
       setAccountNumber("");
-      const data = await fetchStylistPaymentMethods(user.id);
+      const data = await fetchStylistPaymentMethods(String(user.id));
       setStylistMethods(Array.isArray(data) ? data : []);
     } catch (err: any) {
       setError(err.message || "Failed to save payment method");
@@ -99,7 +99,7 @@ export default function PaymentMethodPage() {
   };
 
   const handleEdit = (method: any) => {
-    setEditingId(method.id);
+    setEditingId(method.id ?? null);
     setEditingMethodName(method.paymentName || "");
     setEditingAccountNumber(method.accountNumber || "");
   };
@@ -117,7 +117,7 @@ export default function PaymentMethodPage() {
       setEditingAccountNumber("");
       setPaymentSuccess("Payment method updated successfully!");
       if (user?.id) {
-        const data = await fetchStylistPaymentMethods(user.id);
+        const data = await fetchStylistPaymentMethods(String(user.id));
         setStylistMethods(Array.isArray(data) ? data : []);
       }
     } catch (err: any) {
@@ -127,7 +127,7 @@ export default function PaymentMethodPage() {
     }
   };
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: string) => {
     setLoading(true);
     setError("");
     setPaymentSuccess("");
@@ -135,7 +135,7 @@ export default function PaymentMethodPage() {
       await deletePaymentMethod(id);
       setPaymentSuccess("Payment method deleted successfully!");
       if (user?.id) {
-        const data = await fetchStylistPaymentMethods(user.id);
+        const data = await fetchStylistPaymentMethods(String(user.id));
         setStylistMethods(Array.isArray(data) ? data : []);
       }
     } catch (err: any) {

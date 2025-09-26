@@ -5,40 +5,30 @@ import {
   rescheduleBooking,
   cancelBooking,
   fetchBookings,
-  BookingStatus
+  BookingStatus,
+  type Booking
 } from "@/app/api/bookings";
 import { updateSlotBookedStatus } from "@/app/api/timeslots";
-// Removed direct API usage; handled in api/bookings
 import { useAuth } from "@/context/AuthContext";
-import type { Booking } from "@/app/api/bookings";
 
 
 export default function BookingsPage() {
   const { user, isAuthenticated, loading } = useAuth();
 
-  // State hooks must be at the top, before any conditional returns
+  // State hooks
   const [selectedTab, setSelectedTab] = useState<string>("");
   const [bookings, setBookings] = useState<Booking[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isError, setIsError] = useState(false);
-  
-  // Service names cache
-  const [serviceNames, setServiceNames] = useState<{[key: number]: string}>({});
-  
-  // Slot start time cache
-  const [slotTimes, setSlotTimes] = useState<{[key: number]: string}>({});
-  
-  // Modal state
-  const [rescheduleBookingId, setRescheduleBookingId] = useState<number | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isError, setIsError] = useState<boolean>(false);
+  const [serviceNames, setServiceNames] = useState<Record<string, string>>({});
+  const [slotTimes, setSlotTimes] = useState<Record<string, string>>({});
+  const [rescheduleBookingId, setRescheduleBookingId] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<string>("");
   const [selectedTime, setSelectedTime] = useState<string>("");
 
-  // Use fetchBookings from api/bookings.ts
-  // ...existing code...
-
-  // Load bookings on component mount and when user changes
+  // Load bookings on mount and when user changes
   useEffect(() => {
-    if (!loading && isAuthenticated && user?.id) {
+    if (!loading && isAuthenticated && typeof user?.id === 'string') {
       fetchBookings(
         user.id,
         setIsError,
@@ -50,88 +40,85 @@ export default function BookingsPage() {
         slotTimes
       );
     }
-  }, [loading, isAuthenticated, user?.id]);
+  }, [loading, isAuthenticated, typeof user?.id === 'string' ? user.id : '']);
 
-  // Manual mutation functions
-  const confirmBooking = async (id: number) => {
+  // Manual mutation functions (all string IDs)
+  const confirmBooking = async (id: string) => {
     try {
       await updateBookingStatus(id, BookingStatus.CONFIRMED);
-      // Find the booking to get its slotId
       const booking = bookings.find(b => b.id === id);
       if (booking && booking.slotId) {
         await updateSlotBookedStatus(booking.slotId, true);
       }
-      await fetchBookings(
-        user?.id,
-        setIsError,
-        setIsLoading,
-        setBookings,
-        setServiceNames,
-        setSlotTimes,
-        serviceNames,
-        slotTimes
-      ); // Refresh bookings
-    } catch (error) {
-      // handle error
-    }
+      if (typeof user?.id === 'string') {
+        await fetchBookings(
+          user.id,
+          setIsError,
+          setIsLoading,
+          setBookings,
+          setServiceNames,
+          setSlotTimes,
+          serviceNames,
+          slotTimes
+        );
+      }
+    } catch (error) {}
   };
 
-  const cancelBookingAction = async (id: number) => {
+  const cancelBookingAction = async (id: string) => {
     try {
       await cancelBooking(id);
-      await fetchBookings(
-        user?.id,
-        setIsError,
-        setIsLoading,
-        setBookings,
-        setServiceNames,
-        setSlotTimes,
-        serviceNames,
-        slotTimes
-      ); // Refresh bookings
-    } catch (error) {
-      // Failed to cancel booking
-    }
+      if (typeof user?.id === 'string') {
+        await fetchBookings(
+          user.id,
+          setIsError,
+          setIsLoading,
+          setBookings,
+          setServiceNames,
+          setSlotTimes,
+          serviceNames,
+          slotTimes
+        );
+      }
+    } catch (error) {}
   };
 
-  const rescheduleBookingAction = async (id: number, newDateTime: string) => {
+  const rescheduleBookingAction = async (id: string, newDateTime: string) => {
     try {
-      if (typeof user?.id === "number") {
-        await rescheduleBooking(id, newDateTime, user.id, 'RESCHEDULED');
+      if (typeof user?.id === "string") {
+        await rescheduleBooking(id, newDateTime, user.id, BookingStatus.RESCHEDULED);
+        await fetchBookings(
+          user.id,
+          setIsError,
+          setIsLoading,
+          setBookings,
+          setServiceNames,
+          setSlotTimes,
+          serviceNames,
+          slotTimes
+        );
       } else {
         throw new Error("User ID is not available for rescheduling booking.");
       }
-      await fetchBookings(
-        user?.id,
-        setIsError,
-        setIsLoading,
-        setBookings,
-        setServiceNames,
-        setSlotTimes,
-        serviceNames,
-        slotTimes
-      ); // Refresh bookings
-    } catch (error) {
-      // Failed to reschedule booking
-    }
+    } catch (error) {}
   };
 
-  const completeBooking = async (id: number) => {
+  const completeBooking = async (id: string) => {
     try {
       await updateBookingStatus(id, BookingStatus.COMPLETED);
-      await fetchBookings(
-        user?.id,
-        setIsError,
-        setIsLoading,
-        setBookings,
-        setServiceNames,
-        setSlotTimes,
-        serviceNames,
-        slotTimes
-      ); // Refresh bookings
-    } catch (error) {
-      // Failed to complete booking
-    }
+      if (typeof user?.id === 'string') {
+        await fetchBookings(
+          user.id,
+          setIsError,
+          setIsLoading,
+          setBookings,
+          setServiceNames,
+          setSlotTimes,
+          serviceNames,
+          slotTimes
+        );
+      }
+    } catch (error) {}
   };
 
   // Greeting logic
@@ -142,62 +129,49 @@ export default function BookingsPage() {
     return "Good evening,";
   })();
 
-  // Helper functions to safely extract booking data
+  // Helper functions
   const getServiceName = (booking: Booking): string => {
-    // Try to get service name from the fetched service names using serviceId
     if (booking.serviceId && serviceNames[booking.serviceId]) {
       return serviceNames[booking.serviceId];
     }
-    
     if (booking.service && typeof booking.service === 'object' && 'name' in booking.service) {
       return booking.service.name;
     }
-    
     return 'Unknown Service';
   };
 
-  const getCustomerName = (booking: Booking): string => {
-    return booking.customerName || 'Unknown Customer';
-  };
+  const getCustomerName = (booking: Booking): string => booking.customerName || 'Unknown Customer';
 
   const getStartTime = (booking: Booking): string => {
-    // Try to get from fetched slotTimes using slotId
     if (booking.slotId && slotTimes[booking.slotId]) {
       return slotTimes[booking.slotId];
     }
     return '';
   };
 
-  // Helper function to format booking date for display
   const formatBookingDate = (booking: Booking): string => {
-    // Prefer slot's startTime/start_time as the booking date, using slotTimes cache
     const slotDateStr = getStartTime(booking) || booking.bookedAt || booking.createdAt || booking.updatedAt;
     if (slotDateStr) {
       const date = new Date(slotDateStr);
       if (!isNaN(date.getTime())) {
-        // Display as UTC, no timezone conversion
         return date.toLocaleString('en-US', { timeZone: 'UTC' }) + ' UTC';
       }
     }
     return '';
   };
 
-  // Helper function to format booking time for display (just time part)
   const formatBookingTime = (booking: Booking): string => {
-    // Use slot's start time from slotTimes cache or fallback
     const startTime = getStartTime(booking);
     if (startTime === 'Unknown Time') {
       return 'Time TBD';
     }
     const date = new Date(startTime);
     if (!isNaN(date.getTime())) {
-      // Display as UTC, no timezone conversion
       return date.toLocaleTimeString('en-US', { timeZone: 'UTC', hour: '2-digit', minute: '2-digit', hour12: true }) + ' UTC';
     }
     return '';
   };
 
-  // Helper function to format start time for display (full date/time - kept for compatibility)
   const formatStartTime = (booking: Booking): string => {
     const startTime = getStartTime(booking);
     if (startTime === 'Unknown Time') {
@@ -205,29 +179,27 @@ export default function BookingsPage() {
     }
     const date = new Date(startTime);
     if (!isNaN(date.getTime())) {
-      // Display as UTC, no timezone conversion
       return date.toLocaleString('en-US', { timeZone: 'UTC' }) + ' UTC';
     }
     return '';
   };
 
-  // Tabs by service - computed after data loads with null safety
+  // Tabs by service
   const services = Array.from(
     new Set(
       bookings
         .map((b: Booking) => getServiceName(b))
-        .filter(name => name && name !== 'Unknown Service') // Remove null/undefined and unknown services
+        .filter(name => name && name !== 'Unknown Service')
     )
   ) as string[];
-  
-  // Set initial tab when services are loaded
+
   useEffect(() => {
     if (services.length > 0 && !selectedTab) {
       setSelectedTab(services[0]);
     }
   }, [services, selectedTab]);
 
-  // Reschedule helper functions
+  // Reschedule helpers
   const handleCancelReschedule = () => {
     setRescheduleBookingId(null);
     setSelectedDate("");
@@ -236,35 +208,24 @@ export default function BookingsPage() {
 
   const handleRescheduleClick = (booking: Booking) => {
     setRescheduleBookingId(booking.id);
-    
-    // Get the current booking's start time
     const startTime = getStartTime(booking);
-    
     if (startTime && startTime !== 'Unknown Time') {
       try {
-        // Parse the start time
         const date = new Date(startTime);
-        
         if (!isNaN(date.getTime())) {
-          // Extract date in YYYY-MM-DD format for the date input
           const dateStr = date.toISOString().split('T')[0];
           setSelectedDate(dateStr);
-          
-          // Extract time in HH:mm format for the time input
           const timeStr = date.toTimeString().slice(0, 5);
           setSelectedTime(timeStr);
         } else {
-          // If date parsing fails, reset to empty
           setSelectedDate("");
           setSelectedTime("");
         }
-      } catch (error) {
-        // If any error occurs, reset to empty
+      } catch {
         setSelectedDate("");
         setSelectedTime("");
       }
     } else {
-      // If no start time available, reset to empty
       setSelectedDate("");
       setSelectedTime("");
     }
@@ -272,8 +233,6 @@ export default function BookingsPage() {
 
   const handleSaveReschedule = () => {
     if (!rescheduleBookingId || !selectedDate || !selectedTime) return;
-
-    // Create a proper datetime string for the backend
     const newDateTime = `${selectedDate}T${selectedTime}:00.000Z`;
     rescheduleBookingAction(rescheduleBookingId, newDateTime);
     handleCancelReschedule();
@@ -299,8 +258,7 @@ export default function BookingsPage() {
   if (isLoading) return <div>Loading bookings...</div>;
   if (isError) return <div>Error loading bookings.</div>;
 
-  // Filter bookings by selected service
-  const serviceBookings = selectedTab 
+  const serviceBookings = selectedTab
     ? bookings.filter((b: Booking) => getServiceName(b) === selectedTab)
     : bookings;
 

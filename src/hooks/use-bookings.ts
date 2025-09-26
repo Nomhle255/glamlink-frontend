@@ -18,14 +18,14 @@ enum BookingStatus {
 }
 
 
-export function useBookings(providerId: number) {
+export function useBookings(providerId: string) {
   return useQuery({
     queryKey: ["bookings", providerId],
     queryFn: () => getBookingsByProvider(providerId),
   });
 }
 
-export function useBooking(id: number) {
+export function useBooking(id: string) {
   return useQuery({
     queryKey: ["booking", id],
     queryFn: () => getBookingById(id),
@@ -45,7 +45,7 @@ export function useCreateBooking() {
 export function useUpdateBookingStatus() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, status }: { id: number; status: BookingStatus }) =>
+    mutationFn: ({ id, status }: { id: string; status: BookingStatus }) =>
       updateBookingStatus(id, status),
     onSuccess: (_, variables) => {
       qc.invalidateQueries({ queryKey: ["booking", variables.id] });
@@ -53,12 +53,10 @@ export function useUpdateBookingStatus() {
   });
 }
 
-
-
 export function useCancelBooking() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (id: number) => cancelBooking(id),
+    mutationFn: (id: string) => cancelBooking(id),
     onSuccess: (_, id) => {
       qc.invalidateQueries({ queryKey: ["booking", id] });
     },

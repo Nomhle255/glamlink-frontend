@@ -21,7 +21,7 @@ apiClient.interceptors.request.use((config) => {
 
 // TypeScript interfaces
 export interface Service {
-  id: number;
+  id: string;
   name: string;
   price: number;
   description?: string;
@@ -29,8 +29,8 @@ export interface Service {
 }
 
 export const addServiceToStylist = async (data: {
-  stylistId: number;
-  serviceId: number;
+  stylistId: string;
+  serviceId: string;
   price?: number;
   duration?: number;
 }) => {
@@ -50,40 +50,38 @@ export const getServices = async (): Promise<Service[]> => {
 };
 
 // Get services for a specific stylist from database
-export const getServicesForStylist = async (stylistId: number): Promise<Service[]> => {
+export const getServicesForStylist = async (stylistId: string): Promise<Service[]> => {
   const res = await apiClient.get(`/stylist-services?stylist_id=${stylistId}`);
-  
   // Filter on frontend to ensure we only get the correct stylist's services
   const filteredData = Array.isArray(res.data) 
     ? res.data.filter((item: any) => 
-        item.stylistId === stylistId || 
-        item.stylist_id === stylistId
+        String(item.stylistId) === stylistId || 
+        String(item.stylist_id) === stylistId
       )
     : [];
-  
   return filteredData;
 };
 
 // Get service by ID from database
-export const getServiceById = async (id: number): Promise<Service> => {
+export const getServiceById = async (id: string): Promise<Service> => {
   const res = await apiClient.get(`/services/${id}`);
   return res.data;
 };
 
 // Update service in database
-export const updateService = async (id: number, data: { name?: string; description?: string; price?: number }): Promise<Service> => {
+export const updateService = async (id: string, data: { name?: string; description?: string; price?: number }): Promise<Service> => {
   const res = await apiClient.put(`/stylist-services/${id}`, data);
   return res.data;
 };
 
 // Update stylist service (price, duration, etc.)
-export const updateStylistService = async (id: number, data: { serviceId?: number; price?: number; duration?: number }) => {
+export const updateStylistService = async (id: string, data: { serviceId?: string; price?: number; duration?: number }) => {
   const res = await apiClient.put(`/stylist-services/${id}`, data);
   return res.data;
 };
 
 // Delete service from stylist
-export const removeServiceFromStylist = async (stylistId: number, serviceId: number) => {
+export const removeServiceFromStylist = async (stylistId: string, serviceId: string) => {
   const res = await apiClient.delete(`/stylist-services`, {
     data: { 
       stylistId: stylistId,
@@ -94,45 +92,52 @@ export const removeServiceFromStylist = async (stylistId: number, serviceId: num
 };
 
 // Delete stylist service by record ID
-export const deleteStylistService = async (id: number) => {
+export const deleteStylistService = async (id: string) => {
   const res = await apiClient.delete(`/stylist-services/${id}`);
   return res.data;
 };
 
 // Create a new service and add it to stylist
 export const createServiceAndAddToStylist = async (data: {
-  stylistId: number;
+  stylistId: string;
   serviceName: string;
   price: number;
   description?: string;
-  duration?: number;
 }) => {
   try {
+    // Log the payload before creating the service
+    console.log('Creating service with:', {
+      name: data.serviceName,
+      description: data.description || `${data.serviceName} service`
+    });
     // First, create the new service
     const serviceRes = await apiClient.post(`/services`, {
       name: data.serviceName,
       description: data.description || `${data.serviceName} service`,
     });
-    
     const newServiceId = serviceRes.data.id;
-    
+    // Log the payload before linking the service to the stylist
+    console.log('Linking service to stylist with:', {
+      stylistId: String(data.stylistId),
+      serviceId: String(newServiceId),
+      price: data.price,
+    });
     // Then, link the service to the stylist
     const linkRes = await apiClient.post(`/stylist-services`, {
-      stylistId: data.stylistId,
-      serviceId: newServiceId,
+      stylistId: String(data.stylistId),
+      serviceId: String(newServiceId),
       price: data.price,
-      duration: data.duration
     });
-    
     return linkRes.data;
   } catch (error) {
-    console.error('Error creating service and linking to stylist:', error);
+    const err = error as any;
+    console.error('Service creation error:', err.response?.data || err.message);
     throw error;
   }
 };
 
 // Update both service name and stylist service data
-export const updateStylistServiceWithName = async (stylistServiceId: number, serviceId: number, data: {
+export const updateStylistServiceWithName = async (stylistServiceId: string, serviceId: string, data: {
   serviceName?: string;
   price?: number;
   duration?: number;

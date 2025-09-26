@@ -2,12 +2,12 @@
 import { getServiceById } from "@/app/api/stylists-service";
 import { getSlotById } from "@/app/api/timeslots";
 
-export const fetchServiceNames = async (serviceIds: number[], serviceNames: {[key: number]: string}, setServiceNames: (names: {[key: number]: string}) => void) => {
+export const fetchServiceNames = async (serviceIds: string[], serviceNames: {[key: string]: string}, setServiceNames: (names: {[key: string]: string}) => void) => {
   const newServiceNames = { ...serviceNames };
   const idsToFetch = serviceIds.filter(id => !newServiceNames[id]);
   if (idsToFetch.length === 0) return;
   try {
-    const promises = idsToFetch.map(id => getServiceById(id));
+    const promises = idsToFetch.map((id: string) => getServiceById(id));
     const services = await Promise.all(promises);
     services.forEach((service, index) => {
       if (service?.name) {
@@ -21,7 +21,7 @@ export const fetchServiceNames = async (serviceIds: number[], serviceNames: {[ke
 };
 
 // Fetch slot times for given slot IDs
-export const fetchSlotTimes = async (slotIds: number[], slotTimes: {[key: number]: string}, setSlotTimes: (times: {[key: number]: string}) => void) => {
+export const fetchSlotTimes = async (slotIds: string[], slotTimes: {[key: string]: string}, setSlotTimes: (times: {[key: string]: string}) => void) => {
   const newSlotTimes = { ...slotTimes };
   const idsToFetch = slotIds.filter(id => !newSlotTimes[id]);
   if (idsToFetch.length === 0) return;
@@ -42,14 +42,14 @@ export const fetchSlotTimes = async (slotIds: number[], slotTimes: {[key: number
 
 // Fetch bookings manually
 export const fetchBookings = async (
-  userId: number | undefined,
+  userId: string | undefined,
   setIsError: (v: boolean) => void,
   setIsLoading: (v: boolean) => void,
   setBookings: (b: Booking[]) => void,
-  setServiceNames: (names: {[key: number]: string}) => void,
-  setSlotTimes: (times: {[key: number]: string}) => void,
-  serviceNames: {[key: number]: string},
-  slotTimes: {[key: number]: string}
+  setServiceNames: (names: {[key: string]: string}) => void,
+  setSlotTimes: (times: {[key: string]: string}) => void,
+  serviceNames: {[key: string]: string},
+  slotTimes: {[key: string]: string}
 ) => {
   if (!userId) {
     setIsError(true);
@@ -58,20 +58,20 @@ export const fetchBookings = async (
   }
   try {
     setIsLoading(true);
-    const data = await getBookingsByStylist(Number(userId));
+    const data = await getBookingsByStylist(userId);
     setBookings(data);
     setIsError(false);
     // Extract service IDs and fetch service names
     const serviceIds = data
       .map((booking: Booking) => booking.serviceId)
-      .filter((id: any): id is number => typeof id === 'number');
+      .filter((id: any): id is string => typeof id === 'string');
     if (serviceIds.length > 0) {
       await fetchServiceNames(serviceIds, serviceNames, setServiceNames);
     }
     // Extract slot IDs and fetch slot times
     const slotIds = data
       .map((booking: Booking) => booking.slotId)
-      .filter((id: any): id is number => typeof id === 'number');
+      .filter((id: any): id is string => typeof id === 'string');
     if (slotIds.length > 0) {
       await fetchSlotTimes(slotIds, slotTimes, setSlotTimes);
     }
@@ -93,9 +93,9 @@ export enum BookingStatus {
 }
 
 export interface Booking {
-  id: number;
-  serviceId: number;
-  slotId: number;
+  id: string;
+  serviceId: string;
+  slotId: string;
   service?: {
     name: string;
   };
@@ -115,17 +115,20 @@ export interface Booking {
 }
 
 const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080" as string;
-export const createBooking = async (data: {
-  providerId: number;
+
+export interface CreateBookingData {
+  providerId: string;
   bookingNumber: string;
-  customerId: number;
-  stylistId: number;
-  serviceId: number;
-  slotId: number;
+  customerId: string;
+  stylistId: string;
+  serviceId: string;
+  slotId: string;
   status: BookingStatus;
   customerName: string;
   customerPhone: string;
-}) => {
+}
+
+export const createBooking = async (data: CreateBookingData) => {
   const token = localStorage.getItem('token');
   const res = await axios.post(`${API_URL}/bookings`, data, {
     headers: {
@@ -136,12 +139,12 @@ export const createBooking = async (data: {
   return res.data;
 };
 
-export const getBookingsByProvider = async (providerId: number) => {
+export const getBookingsByProvider = async (providerId: string) => {
   const res = await axios.get(`${API_URL}/bookings/provider/${providerId}`);
   return res.data;
 };
 
-export const getBookingsByStylist = async (stylistId: number) => {
+export const getBookingsByStylist = async (stylistId: string) => {
   const token = localStorage.getItem('token');
   const res = await axios.get(`${API_URL}/bookings/provider/${stylistId}`, {
     headers: {
@@ -152,7 +155,7 @@ export const getBookingsByStylist = async (stylistId: number) => {
   return res.data;
 };
 
-export const getBookingById = async (id: number) => {
+export const getBookingById = async (id: string) => {
   const token = localStorage.getItem('token');
   const res = await axios.get(`${API_URL}/bookings/${id}`, {
     headers: {
@@ -163,7 +166,7 @@ export const getBookingById = async (id: number) => {
   return res.data;
 };
 
-export const updateBookingStatus = async (id: number, status: BookingStatus) => {
+export const updateBookingStatus = async (id: string, status: BookingStatus) => {
   const token = localStorage.getItem('token');
   
   try {
@@ -199,7 +202,7 @@ export const updateBookingStatus = async (id: number, status: BookingStatus) => 
   }
 };
 
-export const rescheduleBooking = async (id: number, newDateTime: string, stylistId: number, status: string = 'RESCHEDULED') => {
+export const rescheduleBooking = async (id: string, newDateTime: string, stylistId: string, status: string = 'RESCHEDULED') => {
   const token = localStorage.getItem('token');
   // newDateTime must be a valid ISO string (e.g., "2025-09-25T09:09:00.000Z")
   try {
@@ -232,7 +235,7 @@ export const rescheduleBooking = async (id: number, newDateTime: string, stylist
   }
 };
 
-export const cancelBooking = async (id: number) => {
+export const cancelBooking = async (id: string) => {
   const token = localStorage.getItem('token');
   const res = await axios.delete(`${API_URL}/bookings/${id}`, {
     headers: {

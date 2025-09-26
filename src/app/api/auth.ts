@@ -129,14 +129,13 @@ export const login = async (data: LoginData) => {
 };
 
 // Helper function to get current stylist ID
-export const getCurrentStylistId = (): number | null => {
+export const getCurrentStylistId = (): string | null => {
   if (typeof window !== 'undefined') {
     const stylistId = localStorage.getItem("stylist_id");
     const userId = localStorage.getItem("userId");
-    
     // Try stylist_id first, then fallback to userId
     const id = stylistId || userId;
-    return id ? parseInt(id, 10) : null;
+    return id || null;
   }
   return null;
 };
