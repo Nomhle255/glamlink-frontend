@@ -1,18 +1,16 @@
 // components/Navbar.jsx
 'use client';
-import { use, useState } from 'react';
+import { useState } from 'react';
 import { 
   Bars3Icon,
-  XMarkIcon,
-  ChevronDownIcon
+  XMarkIcon
 } from '@heroicons/react/24/outline';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [isFeaturesOpen, setIsFeaturesOpen] = useState(false);
 
   return (
-    <nav className="py-5 lg:fixed w-full bg-pink-500 transition-all duration-500 z-50">
+    <nav className="py-5 lg:fixed w-full bg-pink-500 transition-all duration-500 z-50 scroll-smooth">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="w-full flex flex-col lg:flex-row">
           <div className="flex justify-between lg:flex-row">
@@ -34,7 +32,7 @@ const Navbar = () => {
             src="/assets/logo.png"
             alt="GlamLink Logo"
             className="h-20 w-auto"
-            />
+          />
           <div 
             className={`${isOpen ? 'block' : 'hidden'} w-full lg:flex lg:pl-11 max-lg:py-4`} 
             id="navbar"
@@ -53,9 +51,15 @@ const Navbar = () => {
                 </a>
               </li>
               <li>
-              <a href="#questions"
+                <a href="#plans"
                   className="text-gray-700 hover:text-pink-600 text-base lg:text-base font-medium hover:text-indigo-700 transition-all duration-500 mb-2 block lg:mr-6 md:mb-0 lg:text-left">
-                  Frequently Asked Questions
+                  Subscription Plans
+                </a>
+              </li>
+              <li>
+                <a href="#questions"
+                  className="text-gray-700 hover:text-pink-600 text-base lg:text-base font-medium hover:text-indigo-700 transition-all duration-500 mb-2 block lg:mr-6 md:mb-0 lg:text-left">
+                  FAQ'S
                 </a>
               </li>
             </ul>

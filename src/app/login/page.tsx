@@ -87,7 +87,7 @@ export default function LoginPage() {
           <p className="text-pink-200">Welcome back to GlamLink!</p>
         </div>
 
-        <h1 className="text-3xl font-bold text-pink-600 mb-6">Sign In</h1>
+      
 
         {/* Error display */}
         {error && <p className="text-red-500 mb-3 text-sm">{error}</p>}
