@@ -63,6 +63,19 @@ export default function BookingsPage() {
         );
       }
     } catch (error) {}
+    // Always refresh bookings after status change
+    if (typeof user?.id === 'string') {
+      await fetchBookings(
+        user.id,
+        setIsError,
+        setIsLoading,
+        setBookings,
+        setServiceNames,
+        setSlotTimes,
+        serviceNames,
+        slotTimes
+      );
+    }
   };
 
   const cancelBookingAction = async (id: string) => {
@@ -292,7 +305,6 @@ export default function BookingsPage() {
         </ul>
       )}
 
-      {/* Bookings list */}
       <div className="flex flex-col gap-4">
         {serviceBookings.length === 0 ? (
           <div className="text-center py-8 text-gray-500">

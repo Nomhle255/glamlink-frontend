@@ -1,12 +1,34 @@
-// Update slot's booked status (is_available)
+import axios from "axios";
+import { getCurrentStylistId } from "./auth";
+
+const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080" as string;
+
+export interface Slot {
+  id: string;
+  startTime?: string;  
+  start_time?: string; 
+  endTime?: string;
+  end_time?: string;
+  date?: string;
+  isAvailable?: boolean;
+  stylistId?: string;
+  createdAt?: string;
+  [key: string]: any; 
+}
+
+export interface CreateSlotData {
+  startTime: string;
+  endTime: string;
+  date: string;
+  stylistId: string;
+}
 export const updateSlotBookedStatus = async (slotId: string, isBooked: boolean): Promise<void> => {
   const token = localStorage.getItem('token');
   if (!token) throw new Error('No authentication token found');
-
   try {
     await axios.patch(
-      `${API_URL}/timeslots/${slotId}`,
-      { is_available: !isBooked }, // If booked, set is_available to false
+      `${API_URL}/timeslots/${slotId}/status`,
+      { status: isBooked }, 
       {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -18,40 +40,10 @@ export const updateSlotBookedStatus = async (slotId: string, isBooked: boolean):
     throw new Error(error.response?.data?.message || 'Failed to update slot status');
   }
 };
-import axios from "axios";
-import { getCurrentStylistId } from "./auth";
-
-const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080" as string;
-
-// Interface for slot data (simplified - start_time only)
-export interface Slot {
-  id: string;
-  startTime?: string;  // Frontend prefers camelCase
-  start_time?: string; // Backend returns snake_case
-  date?: string;
-  isAvailable?: boolean;
-  stylistId?: string;
-  createdAt?: string;
-  [key: string]: any; // Allow for additional backend fields
-}
-
-// Interface for creating new time slots
-export interface CreateSlotData {
-  startTime: string;
-  endTime: string;
-  date: string;
-  stylistId: string;
-}
-
-// Get slot by ID (start_time only)
-// 🔄 UPDATED: Now only retrieving start_time to avoid backend schema issues
-// Previous issue: end_time field doesn't exist in database
-// Solution: Frontend only uses start_time from slot data
 export const getSlotById = async (id: string): Promise<Slot> => {
   const token = localStorage.getItem('token');
-  
+  if (!token) throw new Error('No authentication token found');
   try {
-    // Use the working timeslots endpoint directly
     const res = await axios.get(`${API_URL}/timeslots/${id}`, {
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -60,13 +52,13 @@ export const getSlotById = async (id: string): Promise<Slot> => {
     });
     return res.data;
   } catch (error: any) {
-    throw error;
+    throw new Error(error.response?.data?.message || 'Failed to fetch slot');
   }
 };
 
-// Get all available slots for a stylist
 export const getAvailableSlots = async (stylistId: string): Promise<Slot[]> => {
   const token = localStorage.getItem('token');
+  if (!token) throw new Error('No authentication token found');
   const res = await axios.get(`${API_URL}/slots?stylistId=${stylistId}`, {
     headers: {
       'Authorization': `Bearer ${token}`,
@@ -76,7 +68,6 @@ export const getAvailableSlots = async (stylistId: string): Promise<Slot[]> => {
   return res.data;
 };
 
-// Create a new time slot
 export const createTimeSlot = async (slotData: CreateSlotData): Promise<Slot> => {
   const token = localStorage.getItem('token');
   if (!token) {
@@ -93,15 +84,15 @@ export const createTimeSlot = async (slotData: CreateSlotData): Promise<Slot> =>
   const cleanDate = slotData.date.split('T')[0]; // Remove time portion if present
   
   // Create datetime strings that the backend expects
-  const startDateTime = `${cleanDate}T${slotData.startTime}:00`;
-  const endDateTime = `${cleanDate}T${slotData.endTime}:00`;
+  const startDateTime = `${cleanDate}T${slotData.startTime}:00Z`; // Add 'Z' for UTC
+  const endDateTime = `${cleanDate}T${slotData.endTime}:00Z`;
 
   const requestData = {
     provider_id: stylistId,
-    datetime: startDateTime, // Backend expects 'datetime' field
+    datetime: startDateTime, 
     start_time: slotData.startTime,
-    end_time: slotData.endTime,
-    date: cleanDate, // Clean date format YYYY-MM-DD
+    end_time: slotData.endTime, 
+    date: cleanDate, 
     is_available: true
   };
 
@@ -128,7 +119,6 @@ export const createTimeSlot = async (slotData: CreateSlotData): Promise<Slot> =>
   }
 };
 
-// Get all time slots for a stylist
 export const getTimeSlotsByStylist = async (providedStylistId?: string): Promise<Slot[]> => {
   const token = localStorage.getItem('token');
   if (!token) {

@@ -74,39 +74,24 @@ export default function Page() {
     try {
       setIsLoading(true);
       setError("");
-      
       // Get the current stylist ID for the API call
       const stylistId = getCurrentStylistId();
       if (!stylistId) {
         setError('No stylist ID available. Please log in again.');
         return;
       }
-      
       const slotData = {
         startTime,
         endTime,
         date: selectedDate,
         stylistId: stylistId
       };
-
-      const newSlot = await createTimeSlot(slotData);
-      
-      // Add to calendar events
-      const newEvent: EventInput = {
-        id: newSlot.id.toString(),
-        title: "Available",
-        start: `${selectedDate}T${startTime}`,
-        end: `${selectedDate}T${endTime}`,
-        allDay: false,
-      };
-      
-      setEvents((prev) => [...prev, newEvent]);
+      await createTimeSlot(slotData);
+      // Instead of just adding the new event, reload all slots from backend
+      await loadTimeSlots();
       setMessage("Time slot added successfully!");
       setModalOpen(false);
-      
-      // Clear message after 3 seconds
       setTimeout(() => setMessage(""), 3000);
-      
     } catch (err: any) {
       setError(err.message);
     } finally {
