@@ -362,7 +362,7 @@ export default function BookingsPage() {
                 </button>
                 <button
                   className="bg-red-100 text-red-700 px-3 py-1 rounded hover:bg-red-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-                  disabled={b.status === "COMPLETED"}
+                  disabled={b.status === "COMPLETED" || b.status === "CANCELLED"}
                   onClick={() => cancelBookingAction(b.id)}
                 >
                   Cancel
@@ -382,7 +382,7 @@ export default function BookingsPage() {
 
       {/* Reschedule Modal */}
       {rescheduleBookingId !== null && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-pink bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded shadow w-80">
             <h3 className="text-lg font-bold mb-4">Reschedule Booking</h3>
             <label className="block mb-2 text-sm font-medium text-gray-700">

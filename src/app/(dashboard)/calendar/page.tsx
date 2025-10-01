@@ -36,7 +36,6 @@ export default function Page() {
       // Always use stylistId as string
       const stylistId = String(user?.id);
       const slots = await getTimeSlotsByStylist(stylistId);
-      console.log('Fetched slots:', slots);
       // Convert slots to calendar events, handle both camelCase and snake_case
       const calendarEvents: EventInput[] = slots.map((slot: Slot) => {
         // Prefer camelCase, fallback to snake_case

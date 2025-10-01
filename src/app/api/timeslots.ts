@@ -1,3 +1,26 @@
+// Fetch slot times for given slot IDs
+export const fetchSlotTimes = async (
+  slotIds: string[],
+  slotTimes: { [key: string]: string },
+  setSlotTimes: (times: { [key: string]: string }) => void
+) => {
+  const newSlotTimes = { ...slotTimes };
+  const idsToFetch = slotIds.filter((id) => !newSlotTimes[id]);
+  if (idsToFetch.length === 0) return;
+  try {
+    const promises = idsToFetch.map((id) => getSlotById(id));
+    const slots = await Promise.all(promises);
+    slots.forEach((slot, index) => {
+      const startTime = slot?.startTime || slot?.start_time || slot?.bookingTime || slot?.booking_time;
+      if (startTime) {
+        newSlotTimes[idsToFetch[index]] = startTime;
+      }
+    });
+    setSlotTimes(newSlotTimes);
+  } catch (error) {
+    console.error('Failed to fetch slot times', error);
+  }
+};
 import axios from "axios";
 import { getCurrentStylistId } from "./auth";
 

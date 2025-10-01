@@ -67,6 +67,28 @@ export const getServiceById = async (id: string): Promise<Service> => {
   const res = await apiClient.get(`/services/${id}`);
   return res.data;
 };
+// Fetch service names for given service IDs
+export const fetchServiceNames = async (
+  serviceIds: string[],
+  serviceNames: { [key: string]: string },
+  setServiceNames: (names: { [key: string]: string }) => void
+) => {
+  const newServiceNames = { ...serviceNames };
+  const idsToFetch = serviceIds.filter((id) => !newServiceNames[id]);
+  if (idsToFetch.length === 0) return;
+  try {
+    const promises = idsToFetch.map((id: string) => getServiceById(id));
+    const services = await Promise.all(promises);
+    services.forEach((service, index) => {
+      if (service?.name) {
+        newServiceNames[idsToFetch[index]] = service.name;
+      }
+    });
+    setServiceNames(newServiceNames);
+  } catch (error) {
+    console.error('Failed to fetch service names', error);
+  }
+};
 
 // Update service in database
 export const updateService = async (id: string, data: { name?: string; description?: string; price?: number }): Promise<Service> => {
@@ -105,23 +127,12 @@ export const createServiceAndAddToStylist = async (data: {
   description?: string;
 }) => {
   try {
-    // Log the payload before creating the service
-    console.log('Creating service with:', {
-      name: data.serviceName,
-      description: data.description || `${data.serviceName} service`
-    });
     // First, create the new service
     const serviceRes = await apiClient.post(`/services`, {
       name: data.serviceName,
       description: data.description || `${data.serviceName} service`,
     });
     const newServiceId = serviceRes.data.id;
-    // Log the payload before linking the service to the stylist
-    console.log('Linking service to stylist with:', {
-      stylistId: String(data.stylistId),
-      serviceId: String(newServiceId),
-      price: data.price,
-    });
     // Then, link the service to the stylist
     const linkRes = await apiClient.post(`/stylist-services`, {
       stylistId: String(data.stylistId),

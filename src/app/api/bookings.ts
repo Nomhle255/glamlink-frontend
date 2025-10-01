@@ -1,87 +1,6 @@
 // Fetch service names for given service IDs
-import { getServiceById } from "@/app/api/stylists-service";
-import { getSlotById } from "@/app/api/timeslots";
-
-export const fetchServiceNames = async (serviceIds: string[], serviceNames: {[key: string]: string}, setServiceNames: (names: {[key: string]: string}) => void) => {
-  const newServiceNames = { ...serviceNames };
-  const idsToFetch = serviceIds.filter(id => !newServiceNames[id]);
-  if (idsToFetch.length === 0) return;
-  try {
-    const promises = idsToFetch.map((id: string) => getServiceById(id));
-    const services = await Promise.all(promises);
-    services.forEach((service, index) => {
-      if (service?.name) {
-        newServiceNames[idsToFetch[index]] = service.name;
-      }
-    });
-    setServiceNames(newServiceNames);
-  } catch (error) {
-    // Failed to fetch service names
-  }
-};
-
-// Fetch slot times for given slot IDs
-export const fetchSlotTimes = async (slotIds: string[], slotTimes: {[key: string]: string}, setSlotTimes: (times: {[key: string]: string}) => void) => {
-  const newSlotTimes = { ...slotTimes };
-  const idsToFetch = slotIds.filter(id => !newSlotTimes[id]);
-  if (idsToFetch.length === 0) return;
-  try {
-    const promises = idsToFetch.map(id => getSlotById(id));
-    const slots = await Promise.all(promises);
-    slots.forEach((slot, index) => {
-      const startTime = slot?.startTime || slot?.start_time || slot?.bookingTime || slot?.booking_time;
-      if (startTime) {
-        newSlotTimes[idsToFetch[index]] = startTime;
-      }
-    });
-    setSlotTimes(newSlotTimes);
-  } catch (error) {
-    // Failed to fetch slot times
-  }
-};
-
-// Fetch bookings manually
-export const fetchBookings = async (
-  userId: string | undefined,
-  setIsError: (v: boolean) => void,
-  setIsLoading: (v: boolean) => void,
-  setBookings: (b: Booking[]) => void,
-  setServiceNames: (names: {[key: string]: string}) => void,
-  setSlotTimes: (times: {[key: string]: string}) => void,
-  serviceNames: {[key: string]: string},
-  slotTimes: {[key: string]: string}
-) => {
-  if (!userId) {
-    setIsError(true);
-    setIsLoading(false);
-    return;
-  }
-  try {
-    setIsLoading(true);
-    const data = await getBookingsByStylist(userId);
-    setBookings(data);
-    setIsError(false);
-    // Extract service IDs and fetch service names
-    const serviceIds = data
-      .map((booking: Booking) => booking.serviceId)
-      .filter((id: any): id is string => typeof id === 'string');
-    if (serviceIds.length > 0) {
-      await fetchServiceNames(serviceIds, serviceNames, setServiceNames);
-    }
-    // Extract slot IDs and fetch slot times
-    const slotIds = data
-      .map((booking: Booking) => booking.slotId)
-      .filter((id: any): id is string => typeof id === 'string');
-    if (slotIds.length > 0) {
-      await fetchSlotTimes(slotIds, slotTimes, setSlotTimes);
-    }
-  } catch (error) {
-    setIsError(true);
-  } finally {
-    setIsLoading(false);
-  }
-};
-// lib/api/bookings.ts
+import { getServiceById, fetchServiceNames } from "@/app/api/stylists-service";
+import { getSlotById, fetchSlotTimes } from "@/app/api/timeslots";
 import axios from "axios";
 
 export enum BookingStatus {
@@ -91,7 +10,6 @@ export enum BookingStatus {
   COMPLETED = "COMPLETED",
   RESCHEDULED = "RESCHEDULED",
 }
-
 export interface Booking {
   id: string;
   serviceId: string;
@@ -164,6 +82,47 @@ export const getBookingById = async (id: string) => {
     }
   });
   return res.data;
+};
+// Fetch bookings manually
+export const fetchBookings = async (
+  userId: string | undefined,
+  setIsError: (v: boolean) => void,
+  setIsLoading: (v: boolean) => void,
+  setBookings: (b: Booking[]) => void,
+  setServiceNames: (names: {[key: string]: string}) => void,
+  setSlotTimes: (times: {[key: string]: string}) => void,
+  serviceNames: {[key: string]: string},
+  slotTimes: {[key: string]: string}
+) => {
+  if (!userId) {
+    setIsError(true);
+    setIsLoading(false);
+    return;
+  }
+  try {
+    setIsLoading(true);
+    const data = await getBookingsByStylist(userId);
+    setBookings(data);
+    setIsError(false);
+    // Extract service IDs and fetch service names
+    const serviceIds = data
+      .map((booking: Booking) => booking.serviceId)
+      .filter((id: any): id is string => typeof id === 'string');
+    if (serviceIds.length > 0) {
+      await fetchServiceNames(serviceIds, serviceNames, setServiceNames);
+    }
+    // Extract slot IDs and fetch slot times
+    const slotIds = data
+      .map((booking: Booking) => booking.slotId)
+      .filter((id: any): id is string => typeof id === 'string');
+    if (slotIds.length > 0) {
+      await fetchSlotTimes(slotIds, slotTimes, setSlotTimes);
+    }
+  } catch (error) {
+    setIsError(true);
+  } finally {
+    setIsLoading(false);
+  }
 };
 
 export const updateBookingStatus = async (id: string, status: BookingStatus) => {

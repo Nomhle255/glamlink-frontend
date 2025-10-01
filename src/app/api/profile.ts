@@ -62,7 +62,6 @@ export const updateUserProfileById = async (userId: string, profileData: Partial
   }
 
   // Log the data being sent for debugging
-  console.log('Updating profile with data:', profileData);
 
   try {
     const response = await axios.put(`${API_URL}/providers/${userId}`, profileData, {

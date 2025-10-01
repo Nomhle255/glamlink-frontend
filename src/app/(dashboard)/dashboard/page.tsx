@@ -80,6 +80,7 @@ export default function DashboardPage() {
           date,
           bookingDate: slotTime || b.bookingDate || b.date || b.bookedAt || b.updatedAt,
           dateField: date ? new Date(date).toISOString().split("T")[0] : undefined,
+          serviceDisplayName: service?.name || "Unknown Service",
         };
       });
       setMappedBookings(mapped);
