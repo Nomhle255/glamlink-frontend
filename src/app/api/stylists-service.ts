@@ -127,22 +127,47 @@ export const createServiceAndAddToStylist = async (data: {
   description?: string;
 }) => {
   try {
-    // First, create the new service
-    const serviceRes = await apiClient.post(`/services`, {
-      name: data.serviceName,
-      description: data.description || `${data.serviceName} service`,
-    });
-    const newServiceId = serviceRes.data.id;
+    // First, check if the service already exists
+    let existingServiceId: string | null = null;
+    try {
+      const allServicesRes = await apiClient.get(`/services`);
+      const existingService = Array.isArray(allServicesRes.data)
+        ? allServicesRes.data.find((s: any) => s.name.toLowerCase() === data.serviceName.toLowerCase())
+        : null;
+      if (existingService) {
+        existingServiceId = existingService.id;
+      }
+    } catch (fetchErr) {
+      // If fetching services fails, log but continue to try creating
+      console.error('Error fetching services:', fetchErr);
+    }
+
+    let serviceIdToUse = existingServiceId;
+    if (!serviceIdToUse) {
+      // Create the new service if it doesn't exist
+      const serviceRes = await apiClient.post(`/services`, {
+        name: data.serviceName,
+        description: data.description || `${data.serviceName} service`,
+      });
+      serviceIdToUse = serviceRes.data.id;
+    }
+
     // Then, link the service to the stylist
     const linkRes = await apiClient.post(`/stylist-services`, {
       stylistId: String(data.stylistId),
-      serviceId: String(newServiceId),
+      serviceId: String(serviceIdToUse),
       price: data.price,
     });
     return linkRes.data;
   } catch (error) {
     const err = error as any;
-    console.error('Service creation error:', err.response?.data || err.message);
+    if (err.response && err.response.data) {
+      console.error('Service creation error:', err.response.data);
+    } else if (err.message) {
+      console.error('Service creation error:', err.message);
+    } else {
+      console.error('Service creation error:', err);
+    }
     throw error;
   }
 };
