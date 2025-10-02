@@ -206,7 +206,7 @@ export default function BookingManager() {
           <div >
             <h1 className="text-lg font-bold">Booking Management</h1>
             
-            <p className="text-muted-foreground mt-2">
+            <p className="text-gray-200">
               Manage and schedule client bookings
             </p>
           </div>
@@ -214,7 +214,7 @@ export default function BookingManager() {
 
         {/* Stats Cards */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <Card>
+          <Card className="bg-pink-100">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Bookings</CardTitle>
               <Calendar className="h-4 w-4 text-muted-foreground" />
@@ -223,7 +223,7 @@ export default function BookingManager() {
               <div className="text-2xl font-bold">{stats.total}</div>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="bg-pink-100">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Today's Bookings</CardTitle>
               <Clock className="h-4 w-4 text-muted-foreground" />
@@ -232,7 +232,7 @@ export default function BookingManager() {
               <div className="text-2xl font-bold">{stats.today}</div>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="bg-pink-100">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Confirmed</CardTitle>
               <Badge variant="default">CONFIRMED</Badge>
@@ -241,7 +241,7 @@ export default function BookingManager() {
               <div className="text-2xl font-bold">{stats.confirmed}</div>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="bg-pink-100">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Pending</CardTitle>
               <Badge variant="secondary">PENDING</Badge>

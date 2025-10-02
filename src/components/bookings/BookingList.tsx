@@ -60,7 +60,6 @@ export default function BookingList(props: BookingListProps) {
     status: "",
     search: "",
   });
-  const [sortBy, setSortBy] = useState<"bookedAt" | "customerName">("bookedAt");
 
   // Provided helpers
   const getServiceName = (booking: Booking): string => {
@@ -129,15 +128,8 @@ export default function BookingList(props: BookingListProps) {
           getServiceName(b).toLowerCase().includes(searchLower)
       );
     }
-    filtered.sort((a, b) => {
-      if (sortBy === "bookedAt") {
-        return new Date(getStartTime(a) || a.bookedAt || a.createdAt || a.updatedAt || "").getTime() - new Date(getStartTime(b) || b.bookedAt || b.createdAt || b.updatedAt || "").getTime();
-      } else {
-        return (a.customerName || a.client_name || "").localeCompare(b.customerName || b.client_name || "");
-      }
-    });
     return filtered;
-  }, [bookings, filters, sortBy]);
+  }, [bookings, filters]);
 
   const getStatusBadge = (status: BookingStatus | string) => {
     const statusConfig: Record<string, { variant: string; label: string }> = {
@@ -194,28 +186,10 @@ export default function BookingList(props: BookingListProps) {
                 ))}
               </SelectContent>
             </Select>
-
-            <Select
-              value={sortBy}
-              onValueChange={(value: string) => setSortBy(value as any)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Sort by" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="bookedAt">Booking Date</SelectItem>
-                <SelectItem value="customerName">Customer Name</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="flex-1">
             <Input
-              placeholder="Search customers or services..."
+              placeholder="Search customer or service..."
               value={filters.search}
-              onChange={(e) =>
-                setFilters((prev) => ({ ...prev, search: e.target.value }))
-              }
+              onChange={e => setFilters(prev => ({ ...prev, search: e.target.value }))}
             />
           </div>
         </div>
@@ -240,10 +214,27 @@ export default function BookingList(props: BookingListProps) {
                   </TableCell>
                   <TableCell>
                     <div className="font-medium">
-                      {formatBookingDate(booking) || <span className="italic text-gray-400">Loading date...</span>}
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                      {formatBookingTime(booking) || <span className="italic text-gray-400">Loading time...</span>}
+                      {/* Show date and time only once, formatted as 'YYYY-MM-DD HH:mm' */}
+                      {(() => {
+                        const slotDateStr = getStartTime(booking) || booking.bookedAt || booking.createdAt || booking.updatedAt;
+                        if (slotDateStr) {
+                          const date = new Date(slotDateStr);
+                          if (!isNaN(date.getTime())) {
+                            return (
+                              date.toLocaleString('en-US', {
+                                timeZone: 'UTC',
+                                year: 'numeric',
+                                month: '2-digit',
+                                day: '2-digit',
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                hour12: true
+                              }) + ' UTC'
+                            );
+                          }
+                        }
+                        return <span className="italic text-gray-400">Loading date...</span>;
+                      })()}
                     </div>
                   </TableCell>
                   <TableCell>

@@ -35,7 +35,7 @@ const items = [
   },
   {
     title: "Bookings",
-    url: "/dashboard/bookings",
+    url: "/dashboard/booking",
     icon: Inbox,
   },
   {
