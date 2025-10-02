@@ -3,6 +3,9 @@ import { getServiceById, fetchServiceNames } from "@/app/api/stylists-service";
 import { getSlotById, fetchSlotTimes } from "@/app/api/timeslots";
 import axios from "axios";
 
+
+const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080" as string;
+
 export enum BookingStatus {
   PENDING = "PENDING",
   CONFIRMED = "CONFIRMED",
@@ -10,6 +13,7 @@ export enum BookingStatus {
   COMPLETED = "COMPLETED",
   RESCHEDULED = "RESCHEDULED",
 }
+
 export interface Booking {
   id: string;
   serviceId: string;
@@ -31,8 +35,6 @@ export interface Booking {
   updatedAt?: string;
   [key: string]: any; 
 }
-
-const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080" as string;
 
 export interface CreateBookingData {
   providerId: string;

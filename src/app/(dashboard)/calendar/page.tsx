@@ -183,8 +183,8 @@ export default function Page() {
 
       {/* Modal for setting hours */}
       {modalOpen && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-30">
-          <form onSubmit={handleAddAvailability} className="bg-white p-6 rounded shadow-lg flex flex-col gap-4 min-w-[300px]">
+        <div className="fixed inset-0 flex items-center justify-center z-50  bg-opacity-30">
+          <form onSubmit={handleAddAvailability} className="bg-pink-100 p-6 rounded shadow-lg flex flex-col gap-4 min-w-[300px]">
             <h3 className="text-lg font-bold text-pink-600 mb-2">Set Available Hours</h3>
             <div>
               <label className="block text-sm font-medium mb-1">Date</label>
