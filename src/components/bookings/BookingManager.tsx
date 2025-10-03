@@ -62,7 +62,7 @@ export default function BookingManager() {
     try {
       if (typeof user?.id === "string") {
         await rescheduleBooking(id, newDateTime, user.id, BookingStatus.RESCHEDULED);
-        await fetchBookings(String(user.id));
+        await fetchBookings(user.id);
       } else {
         throw new Error("User ID is not available for rescheduling booking.");
       }
@@ -129,7 +129,7 @@ export default function BookingManager() {
 
   useEffect(() => {
     if (!authLoading && isAuthenticated && user?.id) {
-      fetchBookings(String(user.id));
+      fetchBookings(user.id);
     }
   }, [authLoading, isAuthenticated, user?.id]);
 
@@ -142,7 +142,7 @@ export default function BookingManager() {
       // if (booking && booking.slotId) {
       //   await updateSlotBookedStatus(booking.slotId, true);
       // }
-      if (user?.id) await fetchBookings(String(user.id));
+      if (user?.id) await fetchBookings(user.id);
     } catch (error) {
       toast.error('Failed to confirm booking');
     }
@@ -151,7 +151,7 @@ export default function BookingManager() {
   const cancelBookingAction = async (id: string) => {
     try {
       await cancelBooking(id);
-      if (user?.id) await fetchBookings(String(user.id));
+      if (user?.id) await fetchBookings(user.id);
     } catch (error) {
       toast.error('Failed to cancel booking');
     }
@@ -164,7 +164,7 @@ export default function BookingManager() {
   const completeBooking = async (id: string) => {
     try {
       await updateBookingStatus(id, BookingStatus.COMPLETED);
-      if (user?.id) await fetchBookings(String(user.id));
+      if (user?.id) await fetchBookings(user.id);
     } catch (error) {
       toast.error('Failed to complete booking');
     }

@@ -3,7 +3,7 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 import { getCurrentUser, logout } from "@/app/api/auth";
 
 export interface AuthUser {
-  id: number;
+  id: string;
   name: string;
   email: string;
   [key: string]: any; // for extra fields
@@ -32,7 +32,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     if (storedUser && token) {
       // Ensure the user object has the required fields
       const normalizedUser: AuthUser = {
-        id: storedUser.id || parseInt(userId || '0', 10),
+        id: storedUser.id || userId || '0',
         name: storedUser.name || storedUser.username || 'Unknown User',
         email: storedUser.email || '',
         ...storedUser
@@ -62,7 +62,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     
     if (storedUser && token) {
       const normalizedUser: AuthUser = {
-        id: storedUser.id || parseInt(userId || '0', 10),
+        id: storedUser.id || userId || '0',
         name: storedUser.name || storedUser.username || 'Unknown User',
         email: storedUser.email || '',
         ...storedUser

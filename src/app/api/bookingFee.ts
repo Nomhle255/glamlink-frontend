@@ -11,7 +11,7 @@ function getAuthHeaders(): Record<string, string> {
 }
 
 
-export async function saveBookingFee(stylistId: number, bookingFee: number | null) {
+export async function saveBookingFee(stylistId: string, bookingFee: number | null) {
   const res = await fetch(`${API_URL}/stylist-booking-fee`, {
     method: "POST",
     headers: getAuthHeaders(),
@@ -21,7 +21,7 @@ export async function saveBookingFee(stylistId: number, bookingFee: number | nul
   return res.json();
 }
 
-export async function fetchStylistBookingFee(stylistId: number) {
+export async function fetchStylistBookingFee(stylistId: string) {
   const res = await fetch(`${API_URL}/stylist-booking-fee/${stylistId}`, {
     headers: getAuthHeaders(),
   });
@@ -33,7 +33,7 @@ export async function fetchStylistBookingFee(stylistId: number) {
   return res.json();
 }
 
-export async function updateStylistBookingFee(stylistId: number, bookingFee: number | null) {
+export async function updateStylistBookingFee(stylistId: string, bookingFee: number | null) {
   const res = await fetch(`${API_URL}/stylist-booking-fee`, {
     method: "PUT",
     headers: getAuthHeaders(),

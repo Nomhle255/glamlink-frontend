@@ -32,6 +32,7 @@ export interface RegisterData {
   location: string;
   priceRangeMin: number;
   priceRangeMax: number;
+  plan?: string; // Optional plan field
 }
 
 export interface LoginData {
@@ -49,7 +50,7 @@ export const login = async (data: LoginData) => {
     const res = await axios.post(`${API_URL}/auth/login`, data);
     
     // Check if we have any user identification data in the response
-    const possibleId = res.data?.id || res.data?.user?.id || res.data?.stylist?.id || res.data?.userId || res.data?.stylistId;
+    const possibleId = String(res.data?.id || res.data?.user?.id || res.data?.stylist?.id || res.data?.userId || res.data?.stylistId || '');
     const possibleName = res.data?.name || res.data?.user?.name || res.data?.stylist?.name || res.data?.username;
     const possibleEmail = res.data?.email || res.data?.user?.email || res.data?.stylist?.email;
     
@@ -61,19 +62,19 @@ export const login = async (data: LoginData) => {
         let userObj = res.data.user || res.data.stylist || res.data || {};
         
         // Ensure we have the essential fields
-        if (!userObj.id && res.data.id) userObj.id = res.data.id;
+        if (!userObj.id && res.data.id) userObj.id = String(res.data.id);
         if (!userObj.name && res.data.name) userObj.name = res.data.name;
         if (!userObj.email && res.data.email) userObj.email = res.data.email;
         
         if (userObj.id) {
           localStorage.setItem("userInfo", JSON.stringify(userObj));
-          localStorage.setItem("userId", userObj.id.toString());
+          localStorage.setItem("userId", String(userObj.id));
         }
         
         // Handle stylist_id from various possible locations
         const stylistId = res.data.stylist_id || userObj.stylist_id || res.data.id;
         if (stylistId) {
-          localStorage.setItem("stylist_id", stylistId.toString());
+          localStorage.setItem("stylist_id", String(stylistId));
         }
       }
     } else if (possibleId) {
@@ -88,8 +89,8 @@ export const login = async (data: LoginData) => {
         
         localStorage.setItem("token", tempToken);
         localStorage.setItem("userInfo", JSON.stringify(extractedUser));
-        localStorage.setItem("userId", extractedUser.id.toString());
-        localStorage.setItem("stylist_id", extractedUser.id.toString());
+        localStorage.setItem("userId", extractedUser.id);
+        localStorage.setItem("stylist_id", extractedUser.id);
       }
     } else {
       // As a last resort, we could make an additional API call to get user info
@@ -105,7 +106,7 @@ export const login = async (data: LoginData) => {
           
           if (profileRes.data?.id) {
             const profileUser = {
-              id: profileRes.data.id,
+              id: String(profileRes.data.id),
               name: profileRes.data.name || "Stylist User",
               email: profileRes.data.email || data.email
             };
@@ -113,8 +114,8 @@ export const login = async (data: LoginData) => {
             const tempToken = "temp_token_" + Date.now();
             localStorage.setItem("token", tempToken);
             localStorage.setItem("userInfo", JSON.stringify(profileUser));
-            localStorage.setItem("userId", profileUser.id.toString());
-            localStorage.setItem("stylist_id", profileUser.id.toString());
+            localStorage.setItem("userId", profileUser.id);
+            localStorage.setItem("stylist_id", profileUser.id);
           }
         } catch (profileError) {
           // Final fallback - ask user for their ID or redirect to manual setup

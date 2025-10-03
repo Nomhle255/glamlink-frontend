@@ -1,9 +1,9 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { register } from "@/app/api/auth";
 
-export default function SignUpPage() {
+function SignUpForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -70,7 +70,6 @@ export default function SignUpPage() {
         location,
         priceRangeMin,
         priceRangeMax,
-        plan: selectedPlan,
       });
 
       setIsSuccess(true);
@@ -254,5 +253,13 @@ export default function SignUpPage() {
         </div>
       </div>
     </>
+  );
+}
+
+export default function SignUpPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <SignUpForm />
+    </Suspense>
   );
 }

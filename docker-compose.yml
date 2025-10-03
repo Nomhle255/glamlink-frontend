@@ -1,0 +1,21 @@
+services:
+  glamlink-app:
+    container_name: glamlink-app
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+      args:
+        NODE_ENV: production
+
+    # Production environment variables
+    environment:
+      - NODE_ENV=production
+
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    networks:
+      - glamlink_network
+
+networks:
+  glamlink_network:
