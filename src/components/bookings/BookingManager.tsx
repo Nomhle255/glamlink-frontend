@@ -15,9 +15,11 @@ import BookingList from './BookingList';
 // Removed duplicate import of BookingStatus above
 import { updateSlotBookedStatus } from '@/app/api/timeslots';
 import UpcomingBookings from './UpcomingBookings';
+import { useQueryClient } from '@tanstack/react-query';
 
 export default function BookingManager() {
   const { user, isAuthenticated, loading: authLoading } = useAuth();
+  const queryClient = useQueryClient();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
@@ -62,7 +64,10 @@ export default function BookingManager() {
     try {
       if (typeof user?.id === "string") {
         await rescheduleBooking(id, newDateTime, user.id, BookingStatus.RESCHEDULED);
+        toast.success('Booking rescheduled successfully!');
         await fetchBookings(user.id);
+        // Invalidate queries to refresh dashboard
+        queryClient.invalidateQueries({ queryKey: ['bookings', user.id] });
       } else {
         throw new Error("User ID is not available for rescheduling booking.");
       }
@@ -142,7 +147,12 @@ export default function BookingManager() {
       // if (booking && booking.slotId) {
       //   await updateSlotBookedStatus(booking.slotId, true);
       // }
-      if (user?.id) await fetchBookings(user.id);
+      toast.success('Booking confirmed successfully!');
+      if (user?.id) {
+        await fetchBookings(user.id);
+        // Invalidate queries to refresh dashboard
+        queryClient.invalidateQueries({ queryKey: ['bookings', user.id] });
+      }
     } catch (error) {
       toast.error('Failed to confirm booking');
     }
@@ -151,7 +161,12 @@ export default function BookingManager() {
   const cancelBookingAction = async (id: string) => {
     try {
       await cancelBooking(id);
-      if (user?.id) await fetchBookings(user.id);
+      toast.success('Booking cancelled successfully!');
+      if (user?.id) {
+        await fetchBookings(user.id);
+        // Invalidate queries to refresh dashboard
+        queryClient.invalidateQueries({ queryKey: ['bookings', user.id] });
+      }
     } catch (error) {
       toast.error('Failed to cancel booking');
     }
@@ -164,7 +179,12 @@ export default function BookingManager() {
   const completeBooking = async (id: string) => {
     try {
       await updateBookingStatus(id, BookingStatus.COMPLETED);
-      if (user?.id) await fetchBookings(user.id);
+      toast.success('Booking marked as completed!');
+      if (user?.id) {
+        await fetchBookings(user.id);
+        // Invalidate queries to refresh dashboard
+        queryClient.invalidateQueries({ queryKey: ['bookings', user.id] });
+      }
     } catch (error) {
       toast.error('Failed to complete booking');
     }
