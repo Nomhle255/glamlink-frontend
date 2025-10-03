@@ -1,10 +1,10 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { register } from "@/app/api/auth";
 import SubscriptionPlans from "@/components/general/SubscriptionPlans";
 
-export default function SignUpPage() {
+function SignUpForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -37,7 +37,14 @@ export default function SignUpPage() {
     setError("");
     setIsLoading(true);
 
-    if (!fullName || !phone || !email || !location || !password || !confirmPassword) {
+    if (
+      !fullName ||
+      !phone ||
+      !email ||
+      !location ||
+      !password ||
+      !confirmPassword
+    ) {
       setError("Please fill in all fields.");
       setIsLoading(false);
       return;
@@ -68,7 +75,9 @@ export default function SignUpPage() {
       setIsSuccess(true);
       setTimeout(() => router.push("/login"), 1000);
     } catch (err: any) {
-      setError(err.response?.data?.message || "Registration failed. Please try again.");
+      setError(
+        err.response?.data?.message || "Registration failed. Please try again."
+      );
     } finally {
       setIsLoading(false);
     }
@@ -85,9 +94,7 @@ export default function SignUpPage() {
     <div className="min-h-screen bg-pink-100 p-4 flex flex-col items-center">
       <div className="max-w-5xl w-full">
         {/* Subscription Plans */}
-        {!selectedPlan && (
-          <SubscriptionPlans />
-        )}
+        {!selectedPlan && <SubscriptionPlans />}
 
         {/* Signup Form */}
         {selectedPlan && (
@@ -97,12 +104,17 @@ export default function SignUpPage() {
               <p className="text-pink-200">Join GlamLink today!</p>
             </div>
 
-            <h1 className="text-3xl font-bold text-pink-600 mb-4">Create Account</h1>
+            <h1 className="text-3xl font-bold text-pink-600 mb-4">
+              Create Account
+            </h1>
 
             {/* Selected Plan */}
             <div className="mb-4 p-3 border rounded-lg bg-pink-50 text-center w-full">
               <p className="text-sm text-gray-700">
-                Selected Plan: <span className="font-semibold text-pink-600">{selectedPlan}</span>
+                Selected Plan:{" "}
+                <span className="font-semibold text-pink-600">
+                  {selectedPlan}
+                </span>
               </p>
               <button
                 onClick={() => setSelectedPlan(null)}
@@ -113,14 +125,21 @@ export default function SignUpPage() {
             </div>
 
             {error && <p className="text-red-500 mb-3 text-sm">{error}</p>}
-            {isSuccess && <p className="text-green-600 mb-3 text-sm">Account created! Redirecting...</p>}
+            {isSuccess && (
+              <p className="text-green-600 mb-3 text-sm">
+                Account created! Redirecting...
+              </p>
+            )}
 
-            <form className="w-full flex flex-col gap-3" onSubmit={handleSignUp}>
+            <form
+              className="w-full flex flex-col gap-3"
+              onSubmit={handleSignUp}
+            >
               <input
                 type="text"
                 placeholder="Full Name"
                 value={fullName}
-                onChange={e => setFullName(e.target.value)}
+                onChange={(e) => setFullName(e.target.value)}
                 className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-300"
                 required
                 disabled={isLoading}
@@ -129,7 +148,7 @@ export default function SignUpPage() {
                 type="tel"
                 placeholder="Phone Number"
                 value={phone}
-                onChange={e => setPhone(e.target.value)}
+                onChange={(e) => setPhone(e.target.value)}
                 className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-300"
                 required
                 disabled={isLoading}
@@ -138,7 +157,7 @@ export default function SignUpPage() {
                 type="email"
                 placeholder="Email"
                 value={email}
-                onChange={e => setEmail(e.target.value)}
+                onChange={(e) => setEmail(e.target.value)}
                 className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-300"
                 required
                 disabled={isLoading}
@@ -147,7 +166,7 @@ export default function SignUpPage() {
                 type="text"
                 placeholder="Location"
                 value={location}
-                onChange={e => setLocation(e.target.value)}
+                onChange={(e) => setLocation(e.target.value)}
                 className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-300"
                 required
                 disabled={isLoading}
@@ -155,22 +174,26 @@ export default function SignUpPage() {
 
               <div className="flex gap-2">
                 <div className="w-1/2">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Min Price (P)</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Min Price (P)
+                  </label>
                   <input
                     type="number"
                     value={priceRangeMin}
-                    onChange={e => setPriceRangeMin(Number(e.target.value))}
+                    onChange={(e) => setPriceRangeMin(Number(e.target.value))}
                     className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-300"
                     required
                     disabled={isLoading}
                   />
                 </div>
                 <div className="w-1/2">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Max Price (P)</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Max Price (P)
+                  </label>
                   <input
                     type="number"
                     value={priceRangeMax}
-                    onChange={e => setPriceRangeMax(Number(e.target.value))}
+                    onChange={(e) => setPriceRangeMax(Number(e.target.value))}
                     className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-300"
                     required
                     disabled={isLoading}
@@ -182,7 +205,7 @@ export default function SignUpPage() {
                 type="password"
                 placeholder="Password (min 10 characters)"
                 value={password}
-                onChange={e => setPassword(e.target.value)}
+                onChange={(e) => setPassword(e.target.value)}
                 className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-300"
                 required
                 disabled={isLoading}
@@ -191,7 +214,7 @@ export default function SignUpPage() {
                 type="password"
                 placeholder="Confirm Password"
                 value={confirmPassword}
-                onChange={e => setConfirmPassword(e.target.value)}
+                onChange={(e) => setConfirmPassword(e.target.value)}
                 className="w-full mb-2 p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-300"
                 required
                 disabled={isLoading}
@@ -219,5 +242,19 @@ export default function SignUpPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function SignUpPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-pink-100 p-4 flex items-center justify-center">
+          <div className="text-pink-600">Loading...</div>
+        </div>
+      }
+    >
+      <SignUpForm />
+    </Suspense>
   );
 }
