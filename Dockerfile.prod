@@ -23,7 +23,7 @@ COPY next.config.ts .
 COPY tsconfig.json .
 COPY postcss.config.mjs .
 COPY components.json .
-#COPY next-env.d.ts .
+# COPY next-env.d.ts .
 
 # Environment variables for build time (add yours as needed)
 ARG NODE_ENV=production

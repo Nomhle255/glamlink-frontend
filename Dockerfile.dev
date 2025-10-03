@@ -20,7 +20,7 @@ COPY next.config.ts .
 COPY tsconfig.json .
 COPY postcss.config.mjs .
 COPY components.json .
-COPY next-env.d.ts .
+# COPY next-env.d.ts .
 
 # Optional: Disable Next.js telemetry
 # ENV NEXT_TELEMETRY_DISABLED 1
