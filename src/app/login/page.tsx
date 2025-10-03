@@ -1,38 +1,29 @@
-
 "use client";
+
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import {
-  login,
-  LoginData,
-} from "@/app/api/auth";
+import { login } from "@/app/api/auth";
 import { useAuth } from "@/context/AuthContext";
 
 export default function LoginPage() {
   const router = useRouter();
   const { refreshAuth, isAuthenticated } = useAuth();
 
-  // Form state
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
-  // Redirect if already authenticated
   useEffect(() => {
-    if (isAuthenticated) {
-      router.push("/dashboard");
-    }
+    if (isAuthenticated) router.push("/dashboard");
   }, [isAuthenticated, router]);
 
-  // Handle login without React Query
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setIsLoading(true);
-    
-    // Validate form data
+
     if (!email || !password) {
       setError("Please fill in all fields.");
       setIsLoading(false);
@@ -40,37 +31,24 @@ export default function LoginPage() {
     }
 
     try {
-      // Execute login - this will automatically store token and stylist_id
-      const data = await login({ email, password });
-      
-      
-      // Refresh AuthContext to pick up the new login data
+      await login({ email, password });
+      setIsSuccess(true);
+
       setTimeout(() => {
         refreshAuth();
-      }, 100);
-      
-      setIsSuccess(true);
-      
-      // Redirect to dashboard
-      setTimeout(() => {
         router.push("/dashboard");
       }, 1000);
-      
-    } catch (error: any) {
-      setError(error.response?.data?.message || "Login failed. Please try again.");
+    } catch (err: any) {
+      setError(err.response?.data?.message || "Login failed. Please try again.");
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Clear error when user starts typing
   useEffect(() => {
-    if (error) {
-      setError("");
-    }
+    if (error) setError("");
   }, [email, password]);
 
-  // Greeting logic similar to bookings page
   const greeting = (() => {
     const hour = new Date().getHours();
     if (hour < 12) return "Good morning!";
@@ -79,31 +57,33 @@ export default function LoginPage() {
   })();
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-pink-100 p-4">
-      <div className="bg-white rounded-2xl shadow-lg p-8 w-full max-w-sm flex flex-col items-center">
-        {/* Greeting similar to bookings page */}
-        <div className="mb-6 p-4 bg-pink-500 rounded shadow text-white w-full text-center">
-          <h2 className="text-lg font-bold">{greeting}</h2>
+    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-pink-100 via-pink-200 to-pink-100 p-4">
+      <div className="bg-white rounded-3xl shadow-xl p-8 sm:p-10 w-full max-w-md flex flex-col items-center transition-transform hover:scale-[1.02] duration-300">
+        
+        {/* Greeting */}
+        <div className="mb-6 p-5 bg-pink-500 rounded-xl shadow text-white w-full text-center">
+          <h2 className="text-xl font-bold">{greeting}</h2>
           <p className="text-pink-200">Welcome back to GlamLink!</p>
         </div>
 
-      
-
-        {/* Error display */}
-        {error && <p className="text-red-500 mb-3 text-sm">{error}</p>}
-        
-        {/* Success/Loading states */}
+        {/* Error / Success messages */}
+        {error && (
+          <p className="text-red-500 mb-3 text-sm text-center">{error}</p>
+        )}
         {isSuccess && (
-          <p className="text-green-600 mb-3 text-sm">Login successful! Redirecting...</p>
+          <p className="text-green-600 mb-3 text-sm text-center">
+            Login successful! Redirecting...
+          </p>
         )}
 
-        <form className="w-full flex flex-col gap-3" onSubmit={handleLogin}>
+        {/* Login Form */}
+        <form className="w-full flex flex-col gap-4" onSubmit={handleLogin}>
           <input
             type="email"
             placeholder="Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-300"
+            className="w-full p-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-300 transition"
             autoComplete="username"
             required
             disabled={isLoading}
@@ -113,23 +93,37 @@ export default function LoginPage() {
             placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-300"
+            className="w-full p-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-300 transition"
             autoComplete="current-password"
             required
             disabled={isLoading}
           />
           <button
             type="submit"
-            className="bg-pink-600 text-white px-6 py-3 rounded-lg w-full hover:bg-pink-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            className="bg-pink-600 text-white font-semibold px-6 py-3 rounded-xl w-full hover:bg-pink-700 transition flex justify-center items-center disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={isLoading}
           >
-            {isLoading ? "Signing In..." : "Sign In"}
+            {isLoading ? (
+              <span className="animate-pulse">Signing In...</span>
+            ) : (
+              "Sign In"
+            )}
           </button>
         </form>
 
-        <p className="mt-6 text-sm text-gray-700">
-          No account? <span className="text-pink-600 font-medium"><a href="/signup">Sign up!</a></span>
+        {/* Sign up link */}
+        <p className="mt-6 text-sm text-gray-700 text-center">
+          No account?{" "}
+          <a
+            href="/signup"
+            className="text-pink-600 font-medium hover:underline"
+          >
+            Sign up!
+          </a>
         </p>
+
+      
+       
       </div>
     </div>
   );

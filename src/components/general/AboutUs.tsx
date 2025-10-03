@@ -1,70 +1,85 @@
 import { ArrowRightIcon } from "@heroicons/react/24/outline";
+import { FaWhatsapp } from "react-icons/fa"; 
+import Image from "next/image";
 
 export default function AboutUs() {
   return (
     <section className="py-24 relative" id="about-us">
-      <div className="w-full max-w-7xl px-4 md:px-5 lg:px-5 mx-auto">
-        <div className="w-full justify-start items-center gap-12 grid lg:grid-cols-2 grid-cols-1">
-          
+      <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8">
+        <div className="grid lg:grid-cols-2 gap-12 items-center">
+
           {/* Left side images */}
-          <div className="w-full justify-center items-start gap-6 grid sm:grid-cols-2 grid-cols-1 lg:order-first order-last">
-            <div className="pt-24 lg:justify-center sm:justify-end justify-start items-start gap-2.5 flex">
-              <img
-                className="rounded-xl object-cover"
+          <div className="grid sm:grid-cols-2 grid-cols-1 gap-6 lg:order-first order-last">
+            <div className="pt-24 flex justify-start sm:justify-end">
+              <Image
                 src="/assets/hair.png.jpg"
-                alt="about Us image"
+                alt="Hair styling"
+                width={400}
+                height={400}
+                className="rounded-xl object-cover hover:scale-105 transition-transform duration-300"
               />
             </div>
-            <img
-              className="sm:ml-0 ml-auto rounded-xl object-cover"
+            <Image
               src="/assets/nails.png"
-              alt="about Us image"
+              alt="Nail styling"
+              width={400}
+              height={400}
+              className="rounded-xl object-cover hover:scale-105 transition-transform duration-300"
             />
           </div>
 
           {/* Right side content */}
-          <div className="w-full flex-col justify-center lg:items-start items-center gap-10 inline-flex">
-            <div className="w-full flex-col justify-center items-start gap-8 flex">
-              <div className="w-full flex-col justify-start lg:items-start items-center gap-3 flex">
-                <h2 className="text-gray-900 text-4xl font-bold font-manrope leading-normal lg:text-start text-center">
-                  Why GlamLink?
-                </h2>
-                <p className="text-gray-500 text-base font-normal leading-relaxed lg:text-start text-center">
-                    GlamLink is built for beauty service providers to streamline client
-                    bookings, manage services, and grow their business. Whether you’re an
-                    independent stylist or a salon, GlamLink is your partner for success.
-                </p>
-              </div>
+          <div className="flex flex-col justify-center items-start gap-10">
+            <div className="flex flex-col gap-6">
+              <h2 className="text-gray-900 text-4xl font-bold leading-tight">
+                Why Choose <span className="text-pink-600">GlamLink?</span>
+              </h2>
+              <p className="text-gray-600 text-lg leading-relaxed">
+                GlamLink connects beauty service providers with customers seamlessly. 
+                Manage appointments, view services, and grow your business effortlessly. 
+                Perfect for independent stylists or full-scale salons.
+              </p>
+            </div>
 
-              {/* Stats */}
-              <div className="w-full lg:justify-start justify-center items-center sm:gap-10 gap-5 inline-flex">
-                <div className="flex-col justify-start items-start inline-flex">
-                  <h3 className="font-bold text-xl mb-4">
-                    Easy Bookings
-                  </h3>
-                  <p className="text-gray-500 text-base font-normal leading-relaxed">
-                    Manage and confirm client appointments with just a few clicks.
-                  </p>
-                </div>
-                <div className="flex-col justify-start items-start inline-flex">
-                    <h3 className="font-bold text-xl mb-4">
-                        Smart Dashboard
-                    </h3>
-                    <p className="text-gray-600">
-                        Get insights into your services, bookings, and client activity.
-                    </p>
-                </div>
-                <div className="flex-col justify-start items-start inline-flex">
-                    <h3 className="font-bold text-xl mb-4">
-                        💬 Stay Connected
-                    </h3>
-                    <p className="text-gray-500 text-base font-normal leading-relaxed">
-                        Chat with clients directly via WhatsApp and keep them engaged.
-                    </p>
-                </div>
+            {/* Stats */}
+            <div className="grid sm:grid-cols-3 grid-cols-1 gap-6 w-full">
+              <div className="flex flex-col gap-2">
+                <h3 className="text-pink-600 font-semibold text-xl">Easy Bookings</h3>
+                <p className="text-gray-600 text-base">Confirm client appointments quickly and efficiently.</p>
+              </div>
+              <div className="flex flex-col gap-2">
+                <h3 className="text-pink-600 font-semibold text-xl">Smart Dashboard</h3>
+                <p className="text-gray-600 text-base">Track services, bookings, and client activity at a glance.</p>
+              </div>
+              <div className="flex flex-col gap-2">
+                <h3 className="text-pink-600 font-semibold text-xl">Stay Connected</h3>
+                <p className="text-gray-600 text-base">Chat with clients directly via WhatsApp for seamless communication.</p>
               </div>
             </div>
+
+            {/* CTA Button */}
+            <div className="mt-6 flex gap-4 flex-wrap">
+              <a
+                href="/signup"
+                className="inline-flex items-center gap-2 bg-pink-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-pink-700 transition-all"
+              >
+                Get Started
+                <ArrowRightIcon className="w-5 h-5" />
+              </a>
+
+              {/* WhatsApp Chat Button */}
+              <a
+                href="https://wa.me/26773749465"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 bg-green-500 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-600 transition-all"
+              >
+                <FaWhatsapp className="w-5 h-5" />
+                Chat on WhatsApp
+              </a>
+            </div>
           </div>
+
         </div>
       </div>
     </section>
