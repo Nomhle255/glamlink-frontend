@@ -53,7 +53,7 @@ export default function BookingManager() {
     if (slotDateStr) {
       const date = new Date(slotDateStr);
       if (!isNaN(date.getTime())) {
-        return date.toLocaleString('en-US', { timeZone: 'UTC' }) + ' UTC';
+        return date.toLocaleString('en-US');
       }
     }
     return '';

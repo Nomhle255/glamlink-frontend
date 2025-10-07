@@ -84,7 +84,7 @@ export default function BookingList(props: BookingListProps) {
     if (slotDateStr) {
       const date = new Date(slotDateStr);
       if (!isNaN(date.getTime())) {
-        return date.toLocaleString('en-US', { timeZone: 'UTC' }) + ' UTC';
+        return date.toLocaleString('en-US');
       }
     }
     return '';
@@ -97,7 +97,7 @@ export default function BookingList(props: BookingListProps) {
     }
     const date = new Date(startTime);
     if (!isNaN(date.getTime())) {
-      return date.toLocaleTimeString('en-US', { timeZone: 'UTC', hour: '2-digit', minute: '2-digit', hour12: true }) + ' UTC';
+      return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
     }
     return '';
   };
@@ -109,7 +109,7 @@ export default function BookingList(props: BookingListProps) {
     }
     const date = new Date(startTime);
     if (!isNaN(date.getTime())) {
-      return date.toLocaleString('en-US', { timeZone: 'UTC' }) + ' UTC';
+      return date.toLocaleString('en-US');
     }
     return '';
   };

@@ -183,6 +183,8 @@ export const rescheduleBooking = async (id: string, newDateTime: string, stylist
     );
     return res.data;
   } catch (error: any) {
+    console.error('Reschedule booking error:', error);
+    console.error('Error response:', error.response?.data);
     if (error.code === 'ERR_NETWORK') {
       throw new Error('Network error: Please check your connection and try again.');
     }
@@ -191,6 +193,10 @@ export const rescheduleBooking = async (id: string, newDateTime: string, stylist
     }
     if (error.response?.status === 400) {
       throw new Error('Invalid request: The selected time slot may not be available.');
+    }
+    if (error.response?.status === 500) {
+      const message = error.response?.data?.message || error.response?.data?.error || 'Server error occurred';
+      throw new Error(`Server error: ${message}`);
     }
     throw error;
   }

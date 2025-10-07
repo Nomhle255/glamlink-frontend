@@ -106,9 +106,9 @@ export const createTimeSlot = async (slotData: CreateSlotData): Promise<Slot> =>
   // Clean the date to be just YYYY-MM-DD format
   const cleanDate = slotData.date.split('T')[0]; // Remove time portion if present
   
-  // Create datetime strings that the backend expects
-  const startDateTime = `${cleanDate}T${slotData.startTime}:00Z`; // Add 'Z' for UTC
-  const endDateTime = `${cleanDate}T${slotData.endTime}:00Z`;
+  // Create datetime strings WITHOUT timezone suffix to preserve local time
+  const startDateTime = `${cleanDate}T${slotData.startTime}:00`;
+  const endDateTime = `${cleanDate}T${slotData.endTime}:00`;
 
   const requestData = {
     provider_id: stylistId,
