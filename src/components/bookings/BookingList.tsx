@@ -97,7 +97,12 @@ export default function BookingList(props: BookingListProps) {
     }
     const date = new Date(startTime);
     if (!isNaN(date.getTime())) {
-      return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+      // Display in UTC to match the stored time
+      const hours = date.getUTCHours();
+      const minutes = date.getUTCMinutes();
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+      const displayHours = hours % 12 || 12;
+      return `${String(displayHours).padStart(2, '0')}:${String(minutes).padStart(2, '0')} ${ampm}`;
     }
     return '';
   };

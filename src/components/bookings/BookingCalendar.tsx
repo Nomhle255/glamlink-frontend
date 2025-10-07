@@ -212,7 +212,12 @@ export default function BookingCalendar({
                           if (timeStr) {
                             const date = new Date(timeStr);
                             if (!isNaN(date.getTime())) {
-                              return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }) + ' UTC';
+                              // Display in UTC to avoid timezone conversion
+                              const hours = date.getUTCHours();
+                              const minutes = date.getUTCMinutes();
+                              const ampm = hours >= 12 ? 'PM' : 'AM';
+                              const displayHours = hours % 12 || 12;
+                              return `${String(displayHours).padStart(2, '0')}:${String(minutes).padStart(2, '0')} ${ampm}`;
                             }
                           }
                           return <span className="italic text-gray-400">Loading time...</span>;

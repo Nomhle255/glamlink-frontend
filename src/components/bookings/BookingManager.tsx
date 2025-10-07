@@ -12,7 +12,7 @@ import { Booking, BookingStatus, fetchBookings as fetchBookingsApi, updateBookin
 import { useAuth } from '@/context/AuthContext';
 import BookingCalendar from './BookingCalendar';
 import BookingList from './BookingList';
-// Removed duplicate import of BookingStatus above
+
 import { updateSlotBookedStatus } from '@/app/api/timeslots';
 import UpcomingBookings from './UpcomingBookings';
 import { useQueryClient } from '@tanstack/react-query';
@@ -192,10 +192,25 @@ export default function BookingManager() {
 
   // Stats for dashboard cards
   const getStats = () => {
-    const today = new Date().toDateString();
-    const todayBookings = bookings.filter(b =>
-      new Date(b.bookedAt || b.date || b.slotDate).toDateString() === today
-    );
+    // Get today's date in YYYY-MM-DD format
+    const today = new Date();
+    const todayDateString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    
+    const todayBookings = bookings.filter(b => {
+      // Get the slot start_time for this booking
+      const slotId = b.slotId || b.slot_id;
+      if (!slotId || !slotTimes[slotId]) {
+        return false; // Skip if no slot time available
+      }
+      
+      const startTime = slotTimes[slotId];
+      // Extract just the date part (YYYY-MM-DD) from the slot time
+      const bookingDateString = startTime.split('T')[0];
+      
+      // Compare just the date strings
+      return bookingDateString === todayDateString;
+    });
+    
     return {
       total: bookings.length,
       today: todayBookings.length,
