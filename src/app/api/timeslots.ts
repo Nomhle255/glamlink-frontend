@@ -106,9 +106,14 @@ export const createTimeSlot = async (slotData: CreateSlotData): Promise<Slot> =>
   // Clean the date to be just YYYY-MM-DD format
   const cleanDate = slotData.date.split('T')[0]; // Remove time portion if present
   
-  // Create datetime strings WITHOUT timezone suffix to preserve local time
-  const startDateTime = `${cleanDate}T${slotData.startTime}:00`;
-  const endDateTime = `${cleanDate}T${slotData.endTime}:00`;
+  // Parse the time input (HH:MM format)
+  const [startHour, startMinute] = slotData.startTime.split(':').map(Number);
+  const [endHour, endMinute] = slotData.endTime.split(':').map(Number);
+  
+  // Format as ISO strings with the exact time values in UTC
+  // This preserves the time the user selected when displayed with getUTCHours()
+  const startDateTime = `${cleanDate}T${String(startHour).padStart(2, '0')}:${String(startMinute).padStart(2, '0')}:00.000Z`;
+  const endDateTime = `${cleanDate}T${String(endHour).padStart(2, '0')}:${String(endMinute).padStart(2, '0')}:00.000Z`;
 
   const requestData = {
     provider_id: stylistId,
@@ -134,6 +139,10 @@ export const createTimeSlot = async (slotData: CreateSlotData): Promise<Slot> =>
     if (error.response?.status === 400) {
       const backendMessage = error.response?.data?.message || error.response?.data?.error || JSON.stringify(error.response?.data);
       throw new Error(`Backend validation failed: ${backendMessage}. Sent data: ${JSON.stringify(requestData)}`);
+    }
+    if (error.response?.status === 500) {
+      const backendMessage = error.response?.data?.message || error.response?.data?.error || JSON.stringify(error.response?.data);
+      throw new Error(`Server error: ${backendMessage}`);
     }
     if (error.code === 'ERR_NETWORK') {
       throw new Error('Network error: Please check your connection');
