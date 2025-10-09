@@ -14,10 +14,18 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [greeting, setGreeting] = useState("Welcome!");
 
   useEffect(() => {
     if (isAuthenticated) router.push("/dashboard");
   }, [isAuthenticated, router]);
+
+  useEffect(() => {
+    const hour = new Date().getHours();
+    if (hour < 12) setGreeting("Good morning!");
+    else if (hour < 18) setGreeting("Good afternoon!");
+    else setGreeting("Good evening!");
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,13 +56,6 @@ export default function LoginPage() {
   useEffect(() => {
     if (error) setError("");
   }, [email, password]);
-
-  const greeting = (() => {
-    const hour = new Date().getHours();
-    if (hour < 12) return "Good morning!";
-    if (hour < 18) return "Good afternoon!";
-    return "Good evening!";
-  })();
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-pink-100 via-pink-200 to-pink-100 p-4">
