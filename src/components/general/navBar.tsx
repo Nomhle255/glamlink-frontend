@@ -1,7 +1,7 @@
 // components/Navbar.jsx
-'use client';
-import { useState } from 'react';
-import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
+"use client";
+import { useState } from "react";
+import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -15,7 +15,6 @@ const Navbar = () => {
     <nav className="fixed top-0 w-full bg-pink-500/90 backdrop-blur-lg transition-all duration-500 z-50 shadow-md">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col lg:flex-row items-center justify-between py-4">
-          
           {/* Logo + Mobile Toggle */}
           <div className="flex w-full justify-between items-center lg:w-auto">
             <a href="/" className="flex items-center gap-2 group">
@@ -45,15 +44,15 @@ const Navbar = () => {
 
           {/* Nav Links */}
           <div
-            className={`${isOpen ? 'block' : 'hidden'} w-full lg:flex lg:items-center lg:pl-12 max-lg:py-4`}
+            className={`${isOpen ? "block" : "hidden"} w-full lg:flex lg:items-center lg:pl-12 max-lg:py-4`}
             id="navbar"
           >
             <ul className="flex flex-col lg:flex-row max-lg:gap-4 mt-4 lg:mt-0 lg:space-x-8">
               {[
-                { name: 'Home', href: '#' },
-                { name: 'About Us', href: '#about-us' },
-                { name: 'Subscription Plans', href: '#plans' },
-                { name: "FAQ's", href: '#questions' },
+                { name: "Home", href: "#" },
+                { name: "About Us", href: "#about-us" },
+                { name: "Subscription Plans", href: "#plans" },
+                { name: "FAQ's", href: "#questions" },
               ].map((link) => (
                 <li key={link.name}>
                   <a
@@ -89,7 +88,6 @@ const Navbar = () => {
               </a>
             </div>
           </div>
-
         </div>
       </div>
     </nav>
