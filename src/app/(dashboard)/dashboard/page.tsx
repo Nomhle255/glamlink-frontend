@@ -1,10 +1,13 @@
 "use client";
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { getCurrentUser, getCurrentStylistId } from "@/app/api/auth";
+import { getCurrentUser, getCurrentStylistId } from "@/lib/api/auth";
 import { useBookings } from "@/hooks/use-bookings";
-import { useStylistsServices, useAllServices } from "@/hooks/use-stylists-service";
-import { getSlotById } from "@/app/api/timeslots";
+import {
+  useStylistsServices,
+  useAllServices,
+} from "@/hooks/use-stylists-service";
+import { getSlotById } from "@/lib/api/timeslots";
 
 export default function DashboardPage() {
   const [providerName, setProviderName] = useState<string>("");
@@ -18,11 +21,18 @@ export default function DashboardPage() {
     setProviderName(user?.name || "Service Provider");
   }, []);
 
-  const stylistIdRaw = typeof window !== 'undefined' ? getCurrentStylistId() : null;
-  const stylistId = stylistIdRaw !== null && stylistIdRaw !== undefined ? String(stylistIdRaw) : "";
-  const { data: bookings = [], isLoading: bookingsLoading } = useBookings(stylistId);
-  const { data: stylistServices = [], isLoading: servicesLoading } = useStylistsServices(stylistId || "");
-  const { data: allServices = [], isLoading: allServicesLoading } = useAllServices();
+  const stylistIdRaw =
+    typeof window !== "undefined" ? getCurrentStylistId() : null;
+  const stylistId =
+    stylistIdRaw !== null && stylistIdRaw !== undefined
+      ? String(stylistIdRaw)
+      : "";
+  const { data: bookings = [], isLoading: bookingsLoading } =
+    useBookings(stylistId);
+  const { data: stylistServices = [], isLoading: servicesLoading } =
+    useStylistsServices(stylistId || "");
+  const { data: allServices = [], isLoading: allServicesLoading } =
+    useAllServices();
 
   // Fetch slot start times for all bookings
   useEffect(() => {
@@ -36,7 +46,11 @@ export default function DashboardPage() {
               try {
                 const slot = await getSlotById(slotId);
                 // Always prefer bookingTime, then startTime, then start_time
-                slotTimeMap[slotId] = slot?.bookingTime || slot?.startTime || slot?.start_time || "";
+                slotTimeMap[slotId] =
+                  slot?.bookingTime ||
+                  slot?.startTime ||
+                  slot?.start_time ||
+                  "";
               } catch {
                 slotTimeMap[slotId] = "";
               }
@@ -65,21 +79,30 @@ export default function DashboardPage() {
             String(b.serviceId ?? b.service_id)
         );
         const mainServiceId = stylistService
-          ? (stylistService as any).serviceId ?? (stylistService as any).service_id
+          ? (stylistService as any).serviceId ??
+            (stylistService as any).service_id
           : b.serviceId ?? b.service_id;
-        const service = allServices.find((s: any) => String(s.id) === String(mainServiceId));
+        const service = allServices.find(
+          (s: any) => String(s.id) === String(mainServiceId)
+        );
         const slotId = b.slotId || b.slot_id;
-        const slotTime = slotId && slotTimes[slotId] && !isNaN(new Date(slotTimes[slotId]).getTime())
-          ? slotTimes[slotId]
-          : undefined;
+        const slotTime =
+          slotId &&
+          slotTimes[slotId] &&
+          !isNaN(new Date(slotTimes[slotId]).getTime())
+            ? slotTimes[slotId]
+            : undefined;
         // Always use slotTime as the date if available
         const date = slotTime || b.bookedAt || b.updatedAt;
         return {
           ...b,
           slotDate: slotTime,
           date,
-          bookingDate: slotTime || b.bookingDate || b.date || b.bookedAt || b.updatedAt,
-          dateField: date ? new Date(date).toISOString().split("T")[0] : undefined,
+          bookingDate:
+            slotTime || b.bookingDate || b.date || b.bookedAt || b.updatedAt,
+          dateField: date
+            ? new Date(date).toISOString().split("T")[0]
+            : undefined,
           serviceDisplayName: service?.name || "Unknown Service",
         };
       });
@@ -99,7 +122,8 @@ export default function DashboardPage() {
   const totalBookings = bookings.length;
   const today = new Date().toISOString().slice(0, 10);
   const todayBookings = mappedBookings.filter(
-    (b: any) => (b.slotDate || b.date || b.bookingDate || "").slice(0, 10) === today
+    (b: any) =>
+      (b.slotDate || b.date || b.bookingDate || "").slice(0, 10) === today
   ).length;
   // Show ALL bookings with a valid booking date (from slot or fallback)
   const bookingsWithDate = mappedBookings
@@ -126,7 +150,11 @@ export default function DashboardPage() {
     <div className="flex flex-col min-h-screen w-full bg-gray-50 pb-20 p-4">
       <div className="bg-pink-500 text-white p-10 rounded-2xl shadow mb-6 text-center w-full">
         <p className="mt-2 text-lg">
-          {isClient ? <>Welcome back, {providerName} 👋</> : <span>&nbsp;</span>}
+          {isClient ? (
+            <>Welcome back, {providerName} 👋</>
+          ) : (
+            <span>&nbsp;</span>
+          )}
         </p>
         <p className="mt-3 text-sm opacity-90">
           Manage your bookings and services with ease ✨
@@ -135,19 +163,27 @@ export default function DashboardPage() {
       {/* --- */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         <div className="bg-pink-100 p-4 rounded-xl text-center shadow">
-          <p className="text-2xl font-bold">{servicesLoading ? "..." : totalServices}</p>
+          <p className="text-2xl font-bold">
+            {servicesLoading ? "..." : totalServices}
+          </p>
           <p className="text-sm">All Services Offered</p>
         </div>
         <div className="bg-pink-100 p-4 rounded-xl text-center shadow">
-          <p className="text-2xl font-bold">{bookingsLoading ? "..." : totalBookings}</p>
+          <p className="text-2xl font-bold">
+            {bookingsLoading ? "..." : totalBookings}
+          </p>
           <p className="text-sm">All Bookings</p>
         </div>
         <div className="bg-pink-100 p-4 rounded-xl text-center shadow">
-          <p className="text-2xl font-bold">{bookingsLoading ? "..." : todayBookings}</p>
+          <p className="text-2xl font-bold">
+            {bookingsLoading ? "..." : todayBookings}
+          </p>
           <p className="text-sm">Bookings Today</p>
         </div>
         <div className="bg-pink-100 p-4 rounded-xl text-center shadow">
-          <p className="text-2xl font-bold">{bookingsLoading ? "..." : totalBookings - todayBookings}</p>
+          <p className="text-2xl font-bold">
+            {bookingsLoading ? "..." : totalBookings - todayBookings}
+          </p>
           <p className="text-sm">Other Bookings</p>
         </div>
       </div>
@@ -171,13 +207,17 @@ export default function DashboardPage() {
               >
                 <div>
                   <p className="font-medium">
-                    {b.customerName || b.customer_name || b.client_name || "Client"}
+                    {b.customerName ||
+                      b.customer_name ||
+                      b.client_name ||
+                      "Client"}
                   </p>
                   <p className="text-sm text-gray-500">
                     Service: {b.serviceDisplayName}
                   </p>
                   <p className="text-xs text-gray-400">
-                    Booking Date: {(b.slotDate || b.date || b.bookingDate || "").slice(0, 10)}{" "}
+                    Booking Date:{" "}
+                    {(b.slotDate || b.date || b.bookingDate || "").slice(0, 10)}{" "}
                     {(() => {
                       const dateVal = b.slotDate || b.date || b.bookingDate;
                       if (!dateVal) return "";
@@ -215,5 +255,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-
-
