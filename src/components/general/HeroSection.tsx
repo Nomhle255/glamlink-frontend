@@ -8,7 +8,7 @@ export default function HeroSection() {
     <section className="relative flex items-center justify-center text-center px-6 py-24 h-[90vh] md:h-screen overflow-hidden">
       {/* Background Image */}
       <Image
-        src="/assets/bg.png"
+        src="/assets/Bg.png"
         alt="GlamLink Hero"
         fill
         priority
