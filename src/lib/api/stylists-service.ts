@@ -1,24 +1,9 @@
-import axios from "axios";
+/**
+ * Stylists Service API
+ * Handles service and stylist-service operations
+ */
 
-const API_URL =
-  process.env.NEXT_PUBLIC_BACKEND_URL || ("http://localhost:8080" as string);
-
-// Create axios instance with automatic auth headers
-const apiClient = axios.create({
-  baseURL: API_URL,
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
-
-// Add auth token to requests automatically
-apiClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
+import apiClient from "./client";
 
 // TypeScript interfaces
 export interface Service {
@@ -71,6 +56,7 @@ export const getServiceById = async (id: string): Promise<Service> => {
   const res = await apiClient.get(`/services/${id}`);
   return res.data;
 };
+
 // Fetch service names for given service IDs
 export const fetchServiceNames = async (
   serviceIds: string[],

@@ -26,7 +26,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { MoreHorizontal, Edit, Send, Loader2 } from "lucide-react";
-import { Booking, BookingStatus } from "@/app/api/bookings";
+import { Booking, BookingStatus } from "@/lib/api/bookings";
 
 interface UpcomingBookingsProps {
   bookings: Booking[];

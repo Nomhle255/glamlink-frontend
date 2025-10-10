@@ -1,13 +1,13 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { getCurrentUser, getCurrentStylistId } from "@/app/api/auth";
+import { getCurrentUser, getCurrentStylistId } from "@/lib/api/auth";
 import { useBookings } from "@/hooks/use-bookings";
 import {
   useStylistsServices,
   useAllServices,
 } from "@/hooks/use-stylists-service";
-import { getSlotById } from "@/app/api/timeslots";
+import { getSlotById } from "@/lib/api/timeslots";
 
 export default function DashboardPage() {
   const [providerName, setProviderName] = useState<string>("");

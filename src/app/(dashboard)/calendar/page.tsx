@@ -15,9 +15,9 @@ import {
   createTimeSlot,
   getTimeSlotsByStylist,
   Slot,
-} from "@/app/api/timeslots";
+} from "@/lib/api/timeslots";
 import { useAuth } from "@/context/AuthContext";
-import { getCurrentStylistId } from "@/app/api/auth";
+import { getCurrentStylistId } from "@/lib/api/auth";
 
 export default function Page() {
   const { user, isAuthenticated, loading } = useAuth();

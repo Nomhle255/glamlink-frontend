@@ -1,6 +1,6 @@
 "use client";
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { getCurrentUser, logout } from "@/app/api/auth";
+import { getCurrentUser, logout } from "@/lib/api/auth";
 
 export interface AuthUser {
   id: string;

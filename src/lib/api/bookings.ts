@@ -1,10 +1,11 @@
-// Fetch service names for given service IDs
-import { getServiceById, fetchServiceNames } from "@/app/api/stylists-service";
-import { getSlotById, fetchSlotTimes } from "@/app/api/timeslots";
-import axios from "axios";
+/**
+ * Bookings API
+ * Handles all booking-related operations
+ */
 
-const API_URL =
-  process.env.NEXT_PUBLIC_BACKEND_URL || ("http://localhost:8080" as string);
+import apiClient from "./client";
+import { getServiceById, fetchServiceNames } from "./stylists-service";
+import { getSlotById, fetchSlotTimes } from "./timeslots";
 
 export enum BookingStatus {
   PENDING = "PENDING",
@@ -49,42 +50,25 @@ export interface CreateBookingData {
 }
 
 export const createBooking = async (data: CreateBookingData) => {
-  const token = localStorage.getItem("token");
-  const res = await axios.post(`${API_URL}/bookings`, data, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-  });
+  const res = await apiClient.post(`/bookings`, data);
   return res.data;
 };
 
 export const getBookingsByProvider = async (providerId: string) => {
-  const res = await axios.get(`${API_URL}/bookings/provider/${providerId}`);
+  const res = await apiClient.get(`/bookings/provider/${providerId}`);
   return res.data;
 };
 
 export const getBookingsByStylist = async (stylistId: string) => {
-  const token = localStorage.getItem("token");
-  const res = await axios.get(`${API_URL}/bookings/provider/${stylistId}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-  });
+  const res = await apiClient.get(`/bookings/provider/${stylistId}`);
   return res.data;
 };
 
 export const getBookingById = async (id: string) => {
-  const token = localStorage.getItem("token");
-  const res = await axios.get(`${API_URL}/bookings/${id}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-  });
+  const res = await apiClient.get(`/bookings/${id}`);
   return res.data;
 };
+
 // Fetch bookings manually
 export const fetchBookings = async (
   userId: string | undefined,
@@ -131,19 +115,9 @@ export const updateBookingStatus = async (
   id: string,
   status: BookingStatus
 ) => {
-  const token = localStorage.getItem("token");
-
   try {
     // Use the backend's expected PATCH method with request body
-    const res = await axios({
-      method: "PATCH",
-      url: `${API_URL}/bookings/${id}/status`,
-      data: { status },
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-    });
+    const res = await apiClient.patch(`/bookings/${id}/status`, { status });
     return res.data;
   } catch (error: any) {
     // If CORS blocks the request, the error will be ERR_NETWORK
@@ -175,23 +149,13 @@ export const rescheduleBooking = async (
   stylistId: string,
   status: string = "RESCHEDULED"
 ) => {
-  const token = localStorage.getItem("token");
   // newDateTime must be a valid ISO string (e.g., "2025-09-25T09:09:00.000Z")
   try {
-    const res = await axios.patch(
-      `${API_URL}/bookings/${id}/reschedule`,
-      {
-        stylistId,
-        newStartTime: newDateTime,
-        status,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    const res = await apiClient.patch(`/bookings/${id}/reschedule`, {
+      stylistId,
+      newStartTime: newDateTime,
+      status,
+    });
     return res.data;
   } catch (error: any) {
     console.error("Reschedule booking error:", error);
@@ -223,12 +187,6 @@ export const rescheduleBooking = async (
 };
 
 export const cancelBooking = async (id: string) => {
-  const token = localStorage.getItem("token");
-  const res = await axios.delete(`${API_URL}/bookings/${id}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-  });
+  const res = await apiClient.delete(`/bookings/${id}`);
   return res.data;
 };

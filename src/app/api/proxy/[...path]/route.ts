@@ -6,23 +6,11 @@
  *
  * WARNING: This is a temporary solution for development.
  * The proper fix is to configure CORS on the backend.
- *
- * NOTE: Uses centralized configuration from src/config/api.ts
  */
 
 import { NextRequest, NextResponse } from "next/server";
 
-// Import centralized backend URL configuration
-// Note: In API routes, we need to use the actual backend URL, not the proxy path
-const getBackendUrl = () => {
-  // Use environment variable or fallback
-  return (
-    process.env.NEXT_PUBLIC_BACKEND_URL ||
-    "https://glamlink-api.africacodefoundry.com"
-  );
-};
-
-const BACKEND_URL = getBackendUrl();
+const BACKEND_URL = "https://glamlink-api.africacodefoundry.com";
 
 // Helper function to proxy requests
 async function proxyRequest(

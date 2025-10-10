@@ -34,7 +34,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { MoreHorizontal, Edit, Trash2, Send } from "lucide-react";
-import { Booking, BookingStatus } from "@/app/api/bookings";
+import { Booking, BookingStatus } from "@/lib/api/bookings";
 
 interface BookingListProps {
   bookings?: Booking[];
@@ -115,7 +115,9 @@ export default function BookingList(props: BookingListProps) {
       const minutes = date.getUTCMinutes();
       const ampm = hours >= 12 ? "PM" : "AM";
       const displayHours = hours % 12 || 12;
-      return `${String(displayHours).padStart(2, "0")}:${String(minutes).padStart(2, "0")} ${ampm}`;
+      return `${String(displayHours).padStart(2, "0")}:${String(
+        minutes
+      ).padStart(2, "0")} ${ampm}`;
     }
     return "";
   };

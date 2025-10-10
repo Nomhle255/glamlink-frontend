@@ -1,29 +1,14 @@
-// lib/api/auth.ts
+/**
+ * Authentication API
+ * Handles user registration, login, and auth state management
+ */
+
 import axios from "axios";
+import { BACKEND_URL } from "@/config/api";
+import apiClient from "./client";
 
-// Use Next.js proxy to avoid CORS issues
-const API_URL =
-  process.env.NEXT_PUBLIC_BACKEND_URL || ("/api/backend" as string);
-
-// Create axios instance for authenticated requests
-const authApiClient = axios.create({
-  baseURL: API_URL,
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
-
-// Add auth token to requests automatically
-authApiClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
-
-// Helper function for authenticated requests
-export const makeAuthenticatedRequest = authApiClient;
+// Use centralized backend URL from config
+const API_URL = BACKEND_URL;
 
 export interface RegisterData {
   name: string;
@@ -42,12 +27,14 @@ export interface LoginData {
 }
 
 export const register = async (data: RegisterData) => {
+  // Note: Using axios directly here since registration doesn't need auth token
   const res = await axios.post(`${API_URL}/auth/register`, data);
   return res.data;
 };
 
 export const login = async (data: LoginData) => {
   try {
+    // Note: Using axios directly here since login is the point where we GET the token
     const res = await axios.post(`${API_URL}/auth/login`, data);
 
     // Check if we have any user identification data in the response

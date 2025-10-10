@@ -11,7 +11,7 @@ import {
   createServiceAndAddToStylist,
   updateStylistServiceWithName,
   Service,
-} from "@/app/api/stylists-service";
+} from "@/lib/api/stylists-service";
 import { useAuth } from "@/context/AuthContext";
 
 export default function ServicesPage() {

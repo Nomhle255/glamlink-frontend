@@ -21,12 +21,12 @@ import {
   updateBookingStatus,
   rescheduleBooking,
   cancelBooking,
-} from "@/app/api/bookings";
+} from "@/lib/api/bookings";
 import { useAuth } from "@/context/AuthContext";
 import BookingCalendar from "./BookingCalendar";
 import BookingList from "./BookingList";
 
-import { updateSlotBookedStatus } from "@/app/api/timeslots";
+import { updateSlotBookedStatus } from "@/lib/api/timeslots";
 import UpcomingBookings from "./UpcomingBookings";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -216,7 +216,9 @@ export default function BookingManager() {
   const getStats = () => {
     // Get today's date in YYYY-MM-DD format
     const today = new Date();
-    const todayDateString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+    const todayDateString = `${today.getFullYear()}-${String(
+      today.getMonth() + 1
+    ).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
 
     const todayBookings = bookings.filter((b) => {
       // Get the slot start_time for this booking

@@ -5,7 +5,7 @@ import {
   updateUserProfileById,
   uploadProfilePictureById,
   UserProfile,
-} from "@/app/api/profile";
+} from "@/lib/api/profile";
 import { useAuth } from "@/context/AuthContext";
 
 export default function Profile() {
@@ -206,7 +206,9 @@ export default function Profile() {
             className="w-24 h-24 rounded-full object-cover border"
           />
           <label
-            className={`absolute bottom-0 right-0 bg-pink-500 text-white p-1 rounded-full cursor-pointer hover:bg-pink-600 ${uploading ? "opacity-50" : ""}`}
+            className={`absolute bottom-0 right-0 bg-pink-500 text-white p-1 rounded-full cursor-pointer hover:bg-pink-600 ${
+              uploading ? "opacity-50" : ""
+            }`}
           >
             <input
               type="file"

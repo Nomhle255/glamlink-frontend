@@ -5,12 +5,12 @@ import {
   savePaymentMethod,
   EditPaymentMethod,
   deletePaymentMethod,
-} from "@/app/api/payment-method";
+} from "@/lib/api/payment-method";
 import {
   fetchStylistBookingFee,
   saveBookingFee,
   updateStylistBookingFee,
-} from "@/app/api/bookingFee";
+} from "@/lib/api/bookingFee";
 import { useAuth } from "@/context/AuthContext";
 
 export default function PaymentMethodPage() {

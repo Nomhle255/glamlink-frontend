@@ -8,7 +8,7 @@ import {
   getBookingById,
   updateBookingStatus,
   cancelBooking,
-} from "@/app/api/bookings";
+} from "@/lib/api/bookings";
 enum BookingStatus {
   PENDING = "PENDING",
   CONFIRMED = "CONFIRMED",

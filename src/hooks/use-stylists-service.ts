@@ -6,7 +6,7 @@ import {
   getServices,
   getServiceById,
   removeServiceFromStylist,
-} from "@/app/api/stylists-service";
+} from "@/lib/api/stylists-service";
 
 export function useCreateService() {
   const qc = useQueryClient();

@@ -1,6 +1,9 @@
-import axios from "axios";
+/**
+ * Profile API
+ * Handles user profile operations
+ */
 
-const API_URL = "http://localhost:8080";
+import apiClient from "./client";
 
 // Profile interface
 export interface UserProfile {
@@ -27,20 +30,9 @@ export interface UserProfile {
 export const getUserProfileById = async (
   userId: string
 ): Promise<UserProfile> => {
-  const token = localStorage.getItem("token");
-  if (!token) {
-    throw new Error("No authentication token found");
-  }
-
   try {
     // Use only the working providers endpoint
-    const response = await axios.get(`${API_URL}/providers/${userId}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-    });
-
+    const response = await apiClient.get(`/providers/${userId}`);
     return response.data;
   } catch (error: any) {
     if (error.response?.status === 401) {
@@ -63,25 +55,8 @@ export const updateUserProfileById = async (
   userId: string,
   profileData: Partial<UserProfile>
 ): Promise<UserProfile> => {
-  const token = localStorage.getItem("token");
-  if (!token) {
-    throw new Error("No authentication token found");
-  }
-
-  // Log the data being sent for debugging
-
   try {
-    const response = await axios.put(
-      `${API_URL}/providers/${userId}`,
-      profileData,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
-
+    const response = await apiClient.put(`/providers/${userId}`, profileData);
     return response.data;
   } catch (error: any) {
     // Log the full error for debugging
@@ -112,22 +87,16 @@ export const uploadProfilePictureById = async (
   userId: string,
   file: File
 ): Promise<string> => {
-  const token = localStorage.getItem("token");
-  if (!token) {
-    throw new Error("No authentication token found");
-  }
-
   const formData = new FormData();
   formData.append("profilePicture", file);
 
   try {
     // Use only the working providers endpoint
-    const response = await axios.post(
-      `${API_URL}/providers/${userId}/upload-picture`,
+    const response = await apiClient.post(
+      `/providers/${userId}/upload-picture`,
       formData,
       {
         headers: {
-          Authorization: `Bearer ${token}`,
           "Content-Type": "multipart/form-data",
         },
       }
