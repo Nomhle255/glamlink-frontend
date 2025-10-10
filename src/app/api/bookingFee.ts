@@ -1,17 +1,21 @@
 import axios from "axios";
 
-
 const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080";
 
 function getAuthHeaders(): Record<string, string> {
-  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
-  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  const token =
+    typeof window !== "undefined" ? localStorage.getItem("token") : null;
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
   if (token) headers["Authorization"] = `Bearer ${token}`;
   return headers;
 }
 
-
-export async function saveBookingFee(stylistId: string, bookingFee: number | null) {
+export async function saveBookingFee(
+  stylistId: string,
+  bookingFee: number | null
+) {
   const res = await fetch(`${API_URL}/stylist-booking-fee`, {
     method: "POST",
     headers: getAuthHeaders(),
@@ -33,7 +37,10 @@ export async function fetchStylistBookingFee(stylistId: string) {
   return res.json();
 }
 
-export async function updateStylistBookingFee(stylistId: string, bookingFee: number | null) {
+export async function updateStylistBookingFee(
+  stylistId: string,
+  bookingFee: number | null
+) {
   const res = await fetch(`${API_URL}/stylist-booking-fee`, {
     method: "PUT",
     headers: getAuthHeaders(),

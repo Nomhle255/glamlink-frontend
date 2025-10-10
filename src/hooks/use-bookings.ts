@@ -17,7 +17,6 @@ enum BookingStatus {
   RESCHEDULED = "RESCHEDULED",
 }
 
-
 export function useBookings(providerId: string) {
   return useQuery({
     queryKey: ["bookings", providerId],

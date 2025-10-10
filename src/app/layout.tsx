@@ -19,9 +19,6 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-
-
-
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -31,11 +28,11 @@ export default function RootLayout({
   const [queryClient] = useState(() => new QueryClient());
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+      >
         <QueryClientProvider client={queryClient}>
-          <AuthProvider>
-            {children}
-          </AuthProvider>
+          <AuthProvider>{children}</AuthProvider>
         </QueryClientProvider>
       </body>
     </html>
