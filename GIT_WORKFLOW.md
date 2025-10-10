@@ -88,33 +88,58 @@ feat(API): Add endpoint         # Scope should be lowercase
 
 Before each commit, the following checks run automatically:
 
-### 1. Linting (ESLint)
-
-- Checks code for potential errors
-- Enforces code style rules
-- Automatically fixes issues when possible
-
-### 2. Formatting (Prettier)
+### 1. Formatting (Prettier)
 
 - Ensures consistent code formatting
 - Automatically formats staged files
 
-### 3. Type Checking (TypeScript)
+### 2. Type Checking (TypeScript)
 
 - Validates TypeScript types
 - Catches type errors before commit
+
+## 🚀 Pre-Push Checks
+
+Before pushing to remote, additional checks run to ensure code quality:
+
+### Full Mode (Default)
+
+1. **Type Checking** - Validates all TypeScript types
+2. **Format Checking** - Ensures code is properly formatted
+3. **Build** - Verifies the project builds successfully
+
+### Light Mode (Faster)
+
+1. **Type Checking** - Validates all TypeScript types
+2. **Format Checking** - Ensures code is properly formatted
+
+### Switching Modes
+
+```bash
+# Use full mode (with build check) - recommended for main/production branches
+npm run hooks:full
+
+# Use light mode (no build check) - faster for feature branches
+npm run hooks:light
+```
+
+### Manual Pre-Push Check
+
+Run pre-push checks manually before pushing:
+
+```bash
+# Full check (includes build)
+npm run pre-push
+
+# Light check (no build)
+npm run pre-push:light
+```
 
 ## 🛠️ Available Scripts
 
 ### Code Quality
 
 ```bash
-# Run ESLint
-npm run lint
-
-# Run ESLint and auto-fix issues
-npm run lint:fix
-
 # Format all files with Prettier
 npm run format
 
@@ -124,8 +149,24 @@ npm run format:check
 # Run TypeScript type checking
 npm run type-check
 
-# Run all checks (type-check + lint + format-check)
+# Run validation checks (type-check + format-check)
 npm run validate
+
+# Run pre-push checks manually (includes build)
+npm run pre-push
+
+# Run pre-push checks without build (faster)
+npm run pre-push:light
+```
+
+### Git Hooks Configuration
+
+```bash
+# Switch to full pre-push mode (with build check)
+npm run hooks:full
+
+# Switch to light pre-push mode (no build check)
+npm run hooks:light
 ```
 
 ### Development
@@ -211,8 +252,11 @@ git commit -m "feat(scope): proper commit message"
 In rare cases, you may need to bypass hooks:
 
 ```bash
-# Skip all hooks (NOT RECOMMENDED)
+# Skip pre-commit hooks
 git commit --no-verify -m "emergency fix"
+
+# Skip pre-push hooks
+git push --no-verify
 
 # Only use this for:
 # - Emergency hotfixes
@@ -352,8 +396,8 @@ git push origin feat/add-user-dashboard
 # Check if everything is okay
 npm run validate
 
-# Auto-fix linting and formatting
-npm run lint:fix && npm run format
+# Auto-format code
+npm run format
 
 # Commit with proper format
 git commit -m "type(scope): description"
@@ -361,8 +405,15 @@ git commit -m "type(scope): description"
 # Available types:
 feat, fix, docs, style, refactor, perf, test, chore, revert, ci, build
 
-# Run before pushing
-npm run validate
+# Run before pushing (manually)
+npm run pre-push
+
+# Switch pre-push hook mode
+npm run hooks:full   # Full mode (with build)
+npm run hooks:light  # Light mode (faster)
+
+# Skip hooks (emergency only)
+git push --no-verify
 ```
 
 ---
