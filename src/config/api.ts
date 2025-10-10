@@ -12,9 +12,9 @@ export const BACKEND_URL =
   process.env.NEXT_PUBLIC_USE_PROXY === "true"
     ? "/api/proxy" // Use proxy if explicitly enabled
     : process.env.NODE_ENV === "development"
-    ? "/api/proxy" // Use proxy in development
-    : process.env.NEXT_PUBLIC_BACKEND_URL ||
-      "https://glamlink-api.africacodefoundry.com"; // Direct backend in production
+      ? "/api/proxy" // Use proxy in development
+      : process.env.NEXT_PUBLIC_BACKEND_URL ||
+        "https://glamlink-api.africacodefoundry.com"; // Direct backend in production
 
 // Frontend URL - Used for redirects and callbacks
 export const FRONTEND_URL =

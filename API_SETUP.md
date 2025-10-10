@@ -12,10 +12,8 @@ All API configuration is centralized in this file:
 
 ```typescript
 export const BACKEND_URL =
-  process.env.NEXT_PUBLIC_BACKEND_URL ||
-  "https://glamlink-api.africacodefoundry.com";
-export const FRONTEND_URL =
-  process.env.NEXT_PUBLIC_FRONTEND_URL || "http://localhost:3000";
+  process.env.NEXT_PUBLIC_BACKEND_URL || "https://glamlink-api.africacodefoundry.com";
+export const FRONTEND_URL = process.env.NEXT_PUBLIC_FRONTEND_URL || "http://localhost:3000";
 ```
 
 **To change the backend URL**, simply update the `NEXT_PUBLIC_BACKEND_URL` environment variable or modify the default value in this file.
