@@ -11,7 +11,7 @@ import {
   createServiceAndAddToStylist,
   updateStylistServiceWithName,
   Service,
-} from "@/app/api/stylists-service";
+} from "@/lib/api/stylists-service";
 import { useAuth } from "@/context/AuthContext";
 
 export default function ServicesPage() {
@@ -57,13 +57,15 @@ export default function ServicesPage() {
       setIsLoading(true);
       setIsError(false);
 
-  const data = await getServicesForStylist(String(user.id));
+      const data = await getServicesForStylist(String(user.id));
 
       // For each stylist service, fetch the service details
       const processedServices = await Promise.all(
-        Array.isArray(data) 
+        Array.isArray(data)
           ? data.map(async (item: any) => {
-              const serviceDetails = await getServiceById(String(item.serviceId));
+              const serviceDetails = await getServiceById(
+                String(item.serviceId)
+              );
               return {
                 id: item.id,
                 name: serviceDetails.name,
@@ -134,7 +136,7 @@ export default function ServicesPage() {
     setIsUpdating(true);
     try {
       const result = await updateStylistServiceWithName(
-        editingService.id, 
+        editingService.id,
         editingService.serviceId,
         {
           serviceName: editServiceName,
@@ -149,7 +151,8 @@ export default function ServicesPage() {
       setEditPrice("");
       fetchServices(); // Refresh the list
     } catch (error: any) {
-      const errorMessage = error.response?.data?.message || error.message || "Unknown error";
+      const errorMessage =
+        error.response?.data?.message || error.message || "Unknown error";
       alert(`Failed to update service: ${errorMessage}`);
     } finally {
       setIsUpdating(false);
@@ -163,18 +166,22 @@ export default function ServicesPage() {
       return;
     }
 
-    if (confirm('Are you sure you want to delete this service?')) {
+    if (confirm("Are you sure you want to delete this service?")) {
       try {
         if (service.serviceId) {
-          await removeServiceFromStylist(String(user.id), String(service.serviceId));
+          await removeServiceFromStylist(
+            String(user.id),
+            String(service.serviceId)
+          );
         } else {
           await deleteStylistService(service.id);
         }
-        
+
         alert("Service deleted successfully!");
         fetchServices(); // Refresh the list
       } catch (error: any) {
-        const errorMessage = error.response?.data?.message || error.message || "Unknown error";
+        const errorMessage =
+          error.response?.data?.message || error.message || "Unknown error";
         alert(`Failed to delete service: ${errorMessage}`);
       }
     }
@@ -205,8 +212,8 @@ export default function ServicesPage() {
           Error: Please log in to view your services.
           <br />
           <small>
-            Not authenticated: {!isAuthenticated ? 'true' : 'false'}, 
-            No user: {!user ? 'true' : 'false'}
+            Not authenticated: {!isAuthenticated ? "true" : "false"}, No user:{" "}
+            {!user ? "true" : "false"}
           </small>
         </div>
       </div>
@@ -218,7 +225,7 @@ export default function ServicesPage() {
       {/* Greeting */}
       <div className="mb-6 p-4 bg-pink-500 rounded shadow text-white">
         <h2 className="text-lg font-bold">
-          {greeting} {user?.name || 'User'}, Welcome to GlamLink!
+          {greeting} {user?.name || "User"}, Welcome to GlamLink!
         </h2>
         <p>View your services and their prices below.</p>
       </div>
@@ -305,10 +312,7 @@ export default function ServicesPage() {
         ) : (
           <div className="space-y-4">
             {services.map((service) => (
-              <div
-                key={service.id}
-                className="p-4 bg-white rounded shadow"
-              >
+              <div key={service.id} className="p-4 bg-white rounded shadow">
                 <div className="flex justify-between items-start">
                   <div>
                     <h4 className="text-lg font-semibold mb-2">

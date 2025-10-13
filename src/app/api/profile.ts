@@ -19,7 +19,7 @@ export interface UserProfile {
   totalReviews?: number;
   priceRangeMin?: number;
   priceRangeMax?: number;
-  password?: string; // Backend includes this but we don't display it
+  password?: string; 
   createdAt?: string;
   updatedAt?: string;
   paymentMethods?: string[];

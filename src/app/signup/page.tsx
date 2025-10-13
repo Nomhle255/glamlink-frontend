@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { register } from "@/app/api/auth";
+import { register } from "@/lib/api/auth";
 import SubscriptionPlans from "@/components/general/SubscriptionPlans";
 
 function SignUpForm() {
