@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
+import { useIsMobile } from "@/hooks/use-mobile";
 import FullCalendar from "@fullcalendar/react";
 import {
   DateSelectArg,
@@ -20,6 +21,7 @@ import { useAuth } from "@/context/AuthContext";
 import { getCurrentStylistId } from "@/lib/api/auth";
 
 export default function Page() {
+  const isMobile = useIsMobile();
   const { user, isAuthenticated, loading } = useAuth();
   const [events, setEvents] = useState<EventInput[]>([]);
   const calendarRef = useRef<FullCalendar>(null);
@@ -68,8 +70,26 @@ export default function Page() {
   };
 
   // When user selects a day
+
+  // Mobile: open modal directly from button
+  const handleMobileAddClick = () => {
+    setSelectedDate("");
+    setStartTime("");
+    setEndTime("");
+    setDesc("Available");
+    setModalOpen(true);
+  };
   const handleDateSelect = (selectInfo: DateSelectArg) => {
     setSelectedDate(selectInfo.startStr);
+    setStartTime("");
+    setEndTime("");
+    setDesc("Available");
+    setModalOpen(true);
+  };
+
+  // For mobile: handle dateClick
+  const handleDateClick = (clickInfo: any) => {
+    setSelectedDate(clickInfo.dateStr);
     setStartTime("");
     setEndTime("");
     setDesc("Available");
@@ -152,11 +172,12 @@ export default function Page() {
   }
 
   return (
-    <div className="rounded-2xl border border-gray-200 bg-white p-4">
+
+  <div className="rounded-2xl border border-gray-200 bg-white p-4 relative">
       <h2 className="text-xl font-bold mb-4 text-pink-600">
         Set Your Weekly Availability
       </h2>
-
+      
       {/* Error Message */}
       {error && (
         <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
@@ -179,42 +200,49 @@ export default function Page() {
       <FullCalendar
         ref={calendarRef}
         plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-        initialView="timeGridWeek"
+        initialView={isMobile ? "timeGridDay" : "timeGridWeek"}
         headerToolbar={{
           left: "prev,next today",
           center: "title",
-          right: "dayGridMonth,timeGridWeek,timeGridDay",
+          right: isMobile ? "timeGridDay" : "dayGridMonth,timeGridWeek,timeGridDay",
         }}
         selectable={true}
-        select={handleDateSelect}
+        select={isMobile ? undefined : handleDateSelect}
+        dateClick={isMobile ? handleDateClick : undefined}
         events={events}
         eventClick={handleEventClick}
         eventContent={renderEventContent}
-        height="auto"
+        height={isMobile ? "auto" : "auto"}
         timeZone="UTC"
       />
       <p className="mt-4 text-gray-500 text-sm">
-        Click a day to set your available hours. Click an event to remove it.
+        {isMobile
+          ? "Tap a day or use the button below to add a timeslot. Tap an event to remove it."
+          : "Click a day to set your available hours. Click an event to remove it."}
       </p>
+
 
       {/* Modal for setting hours */}
       {modalOpen && (
-        <div className="fixed inset-0 flex items-center justify-center z-50  bg-opacity-30">
+
+        <div className="absolute left-1/2 top-16 z-50 transform -translate-x-1/2 w-full max-w-md">
           <form
             onSubmit={handleAddAvailability}
-            className="bg-pink-100 p-6 rounded shadow-lg flex flex-col gap-4 min-w-[300px]"
+            className="bg-pink-100 p-6 rounded shadow-lg flex flex-col gap-4 w-full"
+            style={{ borderRadius: '1.5rem' }}
           >
             <h3 className="text-lg font-bold text-pink-600 mb-2">
               Set Available Hours
             </h3>
             <div>
               <label className="block text-sm font-medium mb-1">Date</label>
-              <input
-                type="text"
-                value={selectedDate}
-                disabled
+              <input 
+                type="text" 
+                value={selectedDate} onChange={e => setSelectedDate(e.target.value)} 
+                placeholder="YYYY-MM-DD" 
                 className="w-full border p-2 rounded bg-gray-100"
               />
+
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">
@@ -262,6 +290,7 @@ export default function Page() {
                 type="submit"
                 className={`px-4 py-2 rounded text-white ${
                   isLoading
+
                     ? "bg-gray-400 cursor-not-allowed"
                     : "bg-pink-500 hover:bg-pink-600"
                 }`}
