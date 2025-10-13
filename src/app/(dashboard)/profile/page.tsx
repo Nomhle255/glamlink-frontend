@@ -33,7 +33,7 @@ export default function Profile() {
   const [location, setLocation] = useState("");
   const [country, setCountry] = useState("");
   const [paymentMethods, setPaymentMethods] = useState<string[]>([]);
-  const [subscriptionPlan, setSubscriptionPlan] = useState<string>("");
+  const [subscription_plan, setSubscription_plan] = useState<string>("");
 
   useEffect(() => {
     const hour = new Date().getHours();
@@ -73,7 +73,7 @@ export default function Profile() {
       setLocation(profileData.location || "");
       setCountry(profileData.country || "");
       setPaymentMethods(profileData.paymentMethods || []);
-  setSubscriptionPlan(profileData.subscription_plan || "");
+  setSubscription_plan(profileData.subscription_plan || "");
       
     } catch (err: any) {
       setError(`Unable to load profile data: ${err.message}`);
@@ -101,7 +101,8 @@ export default function Profile() {
         phoneNumber,
         location,
         country,
-        paymentMethods
+        paymentMethods,
+        subscription_plan
       };
       
       // Update via backend using user ID
@@ -131,7 +132,7 @@ export default function Profile() {
       </div>
     );
   }
-
+  
   return (
     <div className="pb-16 p-4">
       {/* Greeting */}
@@ -155,120 +156,131 @@ export default function Profile() {
         </div>
       )}
 
-      {/* Profile Card */}
-      <div className="bg-white p-6 rounded shadow max-w-md mx-auto flex flex-col items-center gap-4">
-        {/* Country display removed as requested */}
-        
-          {/* Profile Icon */}
-          <div className="relative">
-            <img
-              src={"/assets/Profile.png"}
-              alt="Profile"
-              className="w-24 h-24 rounded-full object-cover border"
-            />
-          </div>
-          {/* Subscription Plan Display */}
-          <div className="w-full mb-2 text-center">
-            <span className="text-sm text-gray-600">Subscription Plan: </span>
-            <span className="font-semibold text-pink-600">{subscriptionPlan || "Not set"}</span>
-          </div>
-
-        {/* Editable Fields - ENABLED for updates */}
-        <div className="w-full flex flex-col gap-3">
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Name</label>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="w-full border p-2 rounded focus:outline-none focus:ring-2 focus:ring-pink-300"
-              disabled={saving}
-              placeholder="Enter your name"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Email</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full border p-2 rounded focus:outline-none focus:ring-2 focus:ring-pink-300"
-              disabled={saving}
-              placeholder="Enter your email"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Phone</label>
-            <input
-              type="text"
-              value={phoneNumber}
-              onChange={(e) => setPhoneNumber(e.target.value)}
-              className="w-full border p-2 rounded focus:outline-none focus:ring-2 focus:ring-pink-300"
-              disabled={saving}
-              placeholder="Enter your phone number"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Location</label>
-            <input
-              type="text"
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-              className="w-full border p-2 rounded focus:outline-none focus:ring-2 focus:ring-pink-300"
-              disabled={saving}
-              placeholder="Enter your location"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Country</label>
-            <select
-              value={country}
-              onChange={(e) => setCountry(e.target.value)}
-              className="w-full border p-2 rounded focus:outline-none focus:ring-2 focus:ring-pink-300"
-              disabled={saving}
-              required
-            >
-              <option value="">Select Country</option>
-              {countryList.map((c) => (
-                <option key={c} value={c}>{c}</option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        {/* Update Button */}
-        <button
-          onClick={handleSave}
-          disabled={saving}
-          className={`mt-4 w-full px-4 py-2 rounded transition ${
-            saving 
-              ? 'bg-gray-400 cursor-not-allowed' 
-              : 'bg-pink-500 hover:bg-pink-600'
-          } text-white`}
-        >
-          {saving ? 'Saving...' : 'Save Changes'}
-        </button>
-
-        {/* Success Message */}
-        {message && <p className="text-green-500 mt-2">{message}</p>}
-
-        {/* Modal Dialog */}
-        {showModal && (
-          <div className="fixed inset-0 flex items-center justify-center z-50">
-            <div className="bg-white border border-green-500 rounded-lg shadow-lg p-6 flex flex-col items-center">
-              <span className="text-green-600 text-xl font-bold mb-2">Success!</span>
-              <span className="text-gray-700 mb-4">Profile has been updated successfully.</span>
-              <button
-                className="bg-pink-500 text-white px-4 py-2 rounded hover:bg-pink-600"
-                onClick={() => setShowModal(false)}
-              >
-                OK
-              </button>
-            </div>
-            <div className="fixed inset-0 bg-black opacity-30 z-40" />
-          </div>
-        )}
+    {/* Profile Card */}
+    <div className="bg-white p-6 rounded shadow max-w-md mx-auto flex flex-col items-center gap-4">
+      {/* Country display removed as requested */}
+      
+      {/* Profile Icon */}
+      <div className="relative">
+        <img
+          src={"/assets/Profile.png"}
+          alt="Profile"
+          className="w-24 h-24 rounded-full border-4 border-pink-500 object-cover"
+        />
       </div>
+
+      {/* Subscription Plan Selection */}
+      <div className="w-full mb-2">
+        <label className="block text-sm font-medium text-gray-700">Subscription Plan</label>
+        <select
+          value={subscription_plan}
+          onChange={e => setSubscription_plan(e.target.value)}
+          className="w-full border p-2 rounded focus:outline-none focus:ring-2 focus:ring-pink-300 font-semibold"
+          required
+        >
+          <option value="">Select Plan</option>
+          <option value="Free">Free</option>
+          <option value="Monthly">Monthly</option>
+          <option value="Yearly">Yearly</option>
+        </select>
+      </div>
+
+      {/* Editable Fields - ENABLED for updates */}
+      <div className="w-full flex flex-col gap-3">
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Name</label>
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="w-full border p-2 rounded focus:outline-none focus:ring-2 focus:ring-pink-300"
+            disabled={saving}
+            placeholder="Enter your name"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Email</label>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="w-full border p-2 rounded focus:outline-none focus:ring-2 focus:ring-pink-300"
+            disabled={saving}
+            placeholder="Enter your email"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Phone</label>
+          <input
+            type="text"
+            value={phoneNumber}
+            onChange={(e) => setPhoneNumber(e.target.value)}
+            className="w-full border p-2 rounded focus:outline-none focus:ring-2 focus:ring-pink-300"
+            disabled={saving}
+            placeholder="Enter your phone number"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Location</label>
+          <input
+            type="text"
+            value={location}
+            onChange={(e) => setLocation(e.target.value)}
+            className="w-full border p-2 rounded focus:outline-none focus:ring-2 focus:ring-pink-300"
+            disabled={saving}
+            placeholder="Enter your location"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Country</label>
+          <select
+            value={country}
+            onChange={(e) => setCountry(e.target.value)}
+            className="w-full border p-2 rounded focus:outline-none focus:ring-2 focus:ring-pink-300"
+            disabled={saving}
+            required
+          >
+            <option value="">Select Country</option>
+            {countryList.map((c) => (
+              <option key={c} value={c}>{c}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      {/* Update Button */}
+      <button
+        onClick={handleSave}
+        disabled={saving}
+        className={`mt-4 w-full px-4 py-2 rounded transition ${
+          saving 
+            ? 'bg-gray-400 cursor-not-allowed' 
+            : 'bg-pink-500 hover:bg-pink-600'
+        } text-white`}
+      >
+        {saving ? 'Saving...' : 'Save Changes'}
+      </button>
+
+      {/* Success Message */}
+      {message && <p className="text-green-500 mt-2">{message}</p>}
+
+      {/* Modal Dialog */}
+      {showModal && (
+        <div className="fixed inset-0 flex items-center justify-center z-50">
+          <div className="bg-white border border-green-500 rounded-lg shadow-lg p-6 flex flex-col items-center">
+            <span className="text-green-600 text-xl font-bold mb-2">Success!</span>
+            <span className="text-gray-700 mb-4">Profile has been updated successfully.</span>
+            <button
+              className="bg-pink-500 text-white px-4 py-2 rounded hover:bg-pink-600"
+              onClick={() => setShowModal(false)}
+            >
+              OK
+            </button>
+          </div>
+          <div className="fixed inset-0 bg-black opacity-30 z-40" />
+        </div>
+      )}
     </div>
+  </div>
   );
 }
