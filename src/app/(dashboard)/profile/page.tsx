@@ -20,6 +20,7 @@ export default function Profile() {
   const [email, setEmail] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [location, setLocation] = useState("");
+  const [country, setCountry] = useState("");
   const [profilePic, setProfilePic] = useState<string | null>(null);
   const [paymentMethods, setPaymentMethods] = useState<string[]>([]);
 
@@ -59,6 +60,7 @@ export default function Profile() {
       setEmail(profileData.email || "");
       setPhoneNumber(profileData.phoneNumber || ""); 
       setLocation(profileData.location || "");
+      setCountry(profileData.country || "");
       setProfilePic(profileData.profilePicture || null);
       setPaymentMethods(profileData.paymentMethods || []);
       
@@ -133,6 +135,7 @@ export default function Profile() {
         email,
         phoneNumber,
         location,
+        country,
         paymentMethods
       };
       
@@ -189,6 +192,11 @@ export default function Profile() {
 
       {/* Profile Card */}
       <div className="bg-white p-6 rounded shadow max-w-md mx-auto flex flex-col items-center gap-4">
+        {/* Display Country */}
+        <div className="w-full mb-2 text-center">
+          <span className="text-sm text-gray-600">Country: </span>
+          <span className="font-semibold text-pink-600">{country || 'Not set'}</span>
+        </div>
         {/* Profile Picture - ENABLED for updates */}
         <div className="relative">
           <img
@@ -253,6 +261,22 @@ export default function Profile() {
               disabled={saving}
               placeholder="Enter your location"
             />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Country</label>
+            <select
+              value={country}
+              onChange={(e) => setCountry(e.target.value)}
+              className="w-full border p-2 rounded focus:outline-none focus:ring-2 focus:ring-pink-300"
+              disabled={saving}
+              required
+            >
+              <option value="">Select Country</option>
+              <option value="Botswana">Botswana</option>
+              <option value="Lesotho">Lesotho</option>
+              <option value="South Africa">South Africa</option>
+              <option value="United States">United States</option>
+            </select>
           </div>
         </div>
 

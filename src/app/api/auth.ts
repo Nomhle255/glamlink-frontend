@@ -30,6 +30,7 @@ export interface RegisterData {
   phoneNumber: string;
   password: string;
   location: string;
+  country: string;
   priceRangeMin: number;
   priceRangeMax: number;
   plan?: string; // Optional plan field
