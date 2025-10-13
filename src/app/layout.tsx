@@ -31,6 +31,9 @@ export default function RootLayout({
   const [queryClient] = useState(() => new QueryClient());
   return (
     <html lang="en">
+      <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+      </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <QueryClientProvider client={queryClient}>
           <AuthProvider>
