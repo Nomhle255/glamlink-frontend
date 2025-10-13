@@ -4,6 +4,7 @@ const API_URL = 'http://localhost:8080';
 
 // Profile interface
 export interface UserProfile {
+  subscription_plan: string;
   id: string;
   name: string;
   email: string;

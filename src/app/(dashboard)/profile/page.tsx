@@ -1,6 +1,17 @@
 
 "use client";
 import { useState, useEffect } from "react";
+
+// Backend base URL for images
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080";
+
+// Centralized country list
+const countryList = [
+  "Botswana",
+  "Lesotho",
+  "South Africa",
+  "United States"
+];
 import { getUserProfileById, updateUserProfileById, uploadProfilePictureById, UserProfile } from "@/app/api/profile";
 import { useAuth } from "@/context/AuthContext";
 
@@ -11,7 +22,7 @@ export default function Profile() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [uploading, setUploading] = useState(false);
+  
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   
@@ -21,8 +32,8 @@ export default function Profile() {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [location, setLocation] = useState("");
   const [country, setCountry] = useState("");
-  const [profilePic, setProfilePic] = useState<string | null>(null);
   const [paymentMethods, setPaymentMethods] = useState<string[]>([]);
+  const [subscriptionPlan, setSubscriptionPlan] = useState<string>("");
 
   useEffect(() => {
     const hour = new Date().getHours();
@@ -61,8 +72,8 @@ export default function Profile() {
       setPhoneNumber(profileData.phoneNumber || ""); 
       setLocation(profileData.location || "");
       setCountry(profileData.country || "");
-      setProfilePic(profileData.profilePicture || null);
       setPaymentMethods(profileData.paymentMethods || []);
+  setSubscriptionPlan(profileData.subscription_plan || "");
       
     } catch (err: any) {
       setError(`Unable to load profile data: ${err.message}`);
@@ -71,53 +82,7 @@ export default function Profile() {
     }
   };
 
-  // Handle profile picture upload
-  const handleProfilePicChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!user || !user.id) {
-      setError("User ID not available. Please log in again.");
-      return;
-    }
-
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      
-      // Validate file size (max 5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        setError("File size must be less than 5MB");
-        return;
-      }
-      
-      // Validate file type
-      if (!file.type.startsWith('image/')) {
-        setError("Please select a valid image file");
-        return;
-      }
-      
-      try {
-        setUploading(true);
-        setError("");
-        
-        try {
-          // Try to upload to backend using user ID
-          const profilePictureUrl = await uploadProfilePictureById(user.id, file);
-          setProfilePic(profilePictureUrl);
-          
-          // Update profile in backend with new picture URL
-          await updateUserProfileById(user.id, { profilePicture: profilePictureUrl });
-          
-          setMessage("Profile picture updated successfully!");
-        } catch (backendError: any) {
-          setError(`Failed to upload profile picture: ${backendError.message}`);
-        }
-        
-        setTimeout(() => setMessage(""), 3000);
-      } catch (err: any) {
-        setError(err.message);
-      } finally {
-        setUploading(false);
-      }
-    }
-  };
+  
 
   // Save profile changes 
   const handleSave = async () => {
@@ -192,29 +157,21 @@ export default function Profile() {
 
       {/* Profile Card */}
       <div className="bg-white p-6 rounded shadow max-w-md mx-auto flex flex-col items-center gap-4">
-        {/* Display Country */}
-        <div className="w-full mb-2 text-center">
-          <span className="text-sm text-gray-600">Country: </span>
-          <span className="font-semibold text-pink-600">{country || 'Not set'}</span>
-        </div>
-        {/* Profile Picture - ENABLED for updates */}
-        <div className="relative">
-          <img
-            src={profilePic || "/assets/Profile.png"}
-            alt="Profile"
-            className="w-24 h-24 rounded-full object-cover border"
-          />
-          <label className={`absolute bottom-0 right-0 bg-pink-500 text-white p-1 rounded-full cursor-pointer hover:bg-pink-600 ${uploading ? 'opacity-50' : ''}`}>
-            <input 
-              type="file" 
-              accept="image/*" 
-              className="hidden" 
-              onChange={handleProfilePicChange}
-              disabled={uploading}
+        {/* Country display removed as requested */}
+        
+          {/* Profile Icon */}
+          <div className="relative">
+            <img
+              src={"/assets/Profile.png"}
+              alt="Profile"
+              className="w-24 h-24 rounded-full object-cover border"
             />
-            {uploading ? '⏳' : '✎'}
-          </label>
-        </div>
+          </div>
+          {/* Subscription Plan Display */}
+          <div className="w-full mb-2 text-center">
+            <span className="text-sm text-gray-600">Subscription Plan: </span>
+            <span className="font-semibold text-pink-600">{subscriptionPlan || "Not set"}</span>
+          </div>
 
         {/* Editable Fields - ENABLED for updates */}
         <div className="w-full flex flex-col gap-3">
@@ -272,10 +229,9 @@ export default function Profile() {
               required
             >
               <option value="">Select Country</option>
-              <option value="Botswana">Botswana</option>
-              <option value="Lesotho">Lesotho</option>
-              <option value="South Africa">South Africa</option>
-              <option value="United States">United States</option>
+              {countryList.map((c) => (
+                <option key={c} value={c}>{c}</option>
+              ))}
             </select>
           </div>
         </div>
