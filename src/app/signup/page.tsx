@@ -79,7 +79,7 @@ function SignUpForm() {
         country,
         priceRangeMin,
         priceRangeMax,
-        plan: selectedPlan || "Free",
+        subscription_plan: selectedPlan || "Free",
       });
 
       setIsSuccess(true);

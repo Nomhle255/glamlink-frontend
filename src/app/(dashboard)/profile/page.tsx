@@ -180,8 +180,7 @@ export default function Profile() {
         >
           <option value="">Select Plan</option>
           <option value="Free">Free</option>
-          <option value="Monthly">Monthly</option>
-          <option value="Yearly">Yearly</option>
+          <option value="Basic">Basic</option>
         </select>
       </div>
 

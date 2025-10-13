@@ -33,7 +33,7 @@ export interface RegisterData {
   country: string;
   priceRangeMin: number;
   priceRangeMax: number;
-  plan?: string; // Optional plan field
+  subscription_plan: string; 
 }
 
 export interface LoginData {
@@ -42,7 +42,15 @@ export interface LoginData {
 }
 
 export const register = async (data: RegisterData) => {
-  const res = await axios.post(`${API_URL}/auth/register`, data);
+  // Convert plan to subscription_plan if present
+  const payload = { ...data };
+  if ((data as any).plan) {
+    payload.subscription_plan = (data as any).plan;
+    delete (payload as any).plan;
+  }
+  // Debug: log registration payload
+  console.log('Submitting registration:', payload);
+  const res = await axios.post(`${API_URL}/auth/register`, payload);
   return res.data;
 };
 
