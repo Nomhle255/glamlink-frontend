@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { login } from "@/app/api/auth";
+import { login } from "@/lib/api/auth";
 import { useAuth } from "@/context/AuthContext";
 
 export default function LoginPage() {
@@ -47,7 +47,9 @@ export default function LoginPage() {
         router.push("/dashboard");
       }, 1000);
     } catch (err: any) {
-      setError(err.response?.data?.message || "Login failed. Please try again.");
+      setError(
+        err.response?.data?.message || "Login failed. Please try again."
+      );
     } finally {
       setIsLoading(false);
     }
@@ -60,7 +62,6 @@ export default function LoginPage() {
   return (
     <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-pink-100 via-pink-200 to-pink-100 p-4">
       <div className="bg-white rounded-3xl shadow-xl p-8 sm:p-10 w-full max-w-md flex flex-col items-center transition-transform hover:scale-[1.02] duration-300">
-        
         {/* Greeting */}
         <div className="mb-6 p-5 bg-pink-500 rounded-xl shadow text-white w-full text-center">
           <h2 className="text-xl font-bold">{greeting}</h2>
@@ -122,9 +123,6 @@ export default function LoginPage() {
             Sign up!
           </a>
         </p>
-
-      
-       
       </div>
     </div>
   );

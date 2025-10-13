@@ -1,6 +1,4 @@
-
-
-import Link from "next/link"
+import Link from "next/link";
 
 import {
   Sidebar,
@@ -11,8 +9,15 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/components/ui/sidebar"
-import { Inbox, LayoutDashboard, Calendar, Search, User, LogOut } from "lucide-react"
+} from "@/components/ui/sidebar";
+import {
+  Inbox,
+  LayoutDashboard,
+  Calendar,
+  Search,
+  User,
+  LogOut,
+} from "lucide-react";
 
 // Menu items with real URLs.
 import { CreditCard } from "lucide-react";
@@ -53,7 +58,7 @@ const items = [
     url: "/logout",
     icon: LogOut,
   },
-]
+];
 
 export function AppSidebar({ bookingsCount }: { bookingsCount?: number }) {
   return (
@@ -65,11 +70,15 @@ export function AppSidebar({ bookingsCount }: { bookingsCount?: number }) {
             <SidebarMenu>
               {items.map((item, idx) => {
                 let notification = null;
-                if (item.title === "Bookings" && typeof bookingsCount === 'number' && bookingsCount > 0) {
+                if (
+                  item.title === "Bookings" &&
+                  typeof bookingsCount === "number" &&
+                  bookingsCount > 0
+                ) {
                   notification = bookingsCount;
                 }
                 return (
-                  <SidebarMenuItem key={item.title + '-' + idx}>
+                  <SidebarMenuItem key={item.title + "-" + idx}>
                     <SidebarMenuButton asChild>
                       <Link href={item.url} className="flex items-center gap-2">
                         <item.icon />
@@ -89,5 +98,5 @@ export function AppSidebar({ bookingsCount }: { bookingsCount?: number }) {
         </SidebarGroup>
       </SidebarContent>
     </Sidebar>
-  )
+  );
 }

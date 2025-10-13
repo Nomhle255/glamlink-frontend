@@ -3,13 +3,22 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import FullCalendar from "@fullcalendar/react";
-import { DateSelectArg, EventClickArg, EventContentArg, EventInput } from "@fullcalendar/core";
+import {
+  DateSelectArg,
+  EventClickArg,
+  EventContentArg,
+  EventInput,
+} from "@fullcalendar/core";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
-import { createTimeSlot, getTimeSlotsByStylist, Slot } from "@/app/api/timeslots";
+import {
+  createTimeSlot,
+  getTimeSlotsByStylist,
+  Slot,
+} from "@/lib/api/timeslots";
 import { useAuth } from "@/context/AuthContext";
-import { getCurrentStylistId } from "@/app/api/auth";
+import { getCurrentStylistId } from "@/lib/api/auth";
 
 export default function Page() {
   const isMobile = useIsMobile();
@@ -41,7 +50,8 @@ export default function Page() {
       // Convert slots to calendar events, handle both camelCase and snake_case
       const calendarEvents: EventInput[] = slots.map((slot: Slot) => {
         // Prefer camelCase, fallback to snake_case
-        const start = slot.startTime || slot.start_time || slot.bookingTime || '';
+        const start =
+          slot.startTime || slot.start_time || slot.bookingTime || "";
         const end = slot.endTime || slot.end_time || slot.bookingTime || start;
         return {
           id: String(slot.id),
@@ -96,14 +106,14 @@ export default function Page() {
       // Get the current stylist ID for the API call
       const stylistId = getCurrentStylistId();
       if (!stylistId) {
-        setError('No stylist ID available. Please log in again.');
+        setError("No stylist ID available. Please log in again.");
         return;
       }
       const slotData = {
         startTime,
         endTime,
         date: selectedDate,
-        stylistId: stylistId
+        stylistId: stylistId,
       };
       await createTimeSlot(slotData);
       // Instead of just adding the new event, reload all slots from backend
@@ -121,7 +131,9 @@ export default function Page() {
   // When user clicks an event, allow deletion
   const handleEventClick = (clickInfo: EventClickArg) => {
     if (window.confirm(`Remove this availability?`)) {
-      setEvents((prev) => prev.filter((event) => event.id !== clickInfo.event.id));
+      setEvents((prev) =>
+        prev.filter((event) => event.id !== clickInfo.event.id)
+      );
     }
   };
 
@@ -151,21 +163,26 @@ export default function Page() {
     return (
       <div className="rounded-2xl border border-gray-200 bg-white p-4">
         <div className="text-center py-8">
-          <p className="text-red-600">Please log in to manage your availability.</p>
+          <p className="text-red-600">
+            Please log in to manage your availability.
+          </p>
         </div>
       </div>
     );
   }
 
   return (
+
   <div className="rounded-2xl border border-gray-200 bg-white p-4 relative">
-      <h2 className="text-xl font-bold mb-4 text-pink-600">Set Your Weekly Availability</h2>
+      <h2 className="text-xl font-bold mb-4 text-pink-600">
+        Set Your Weekly Availability
+      </h2>
       
       {/* Error Message */}
       {error && (
         <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
           <p>{error}</p>
-          <button 
+          <button
             onClick={() => setError("")}
             className="mt-2 text-sm underline hover:no-underline"
           >
@@ -207,28 +224,58 @@ export default function Page() {
 
       {/* Modal for setting hours */}
       {modalOpen && (
+
         <div className="absolute left-1/2 top-16 z-50 transform -translate-x-1/2 w-full max-w-md">
           <form
             onSubmit={handleAddAvailability}
             className="bg-pink-100 p-6 rounded shadow-lg flex flex-col gap-4 w-full"
             style={{ borderRadius: '1.5rem' }}
           >
-            <h3 className="text-lg font-bold text-pink-600 mb-2">Set Available Hours</h3>
+            <h3 className="text-lg font-bold text-pink-600 mb-2">
+              Set Available Hours
+            </h3>
             <div>
               <label className="block text-sm font-medium mb-1">Date</label>
-              <input type="text" value={selectedDate} onChange={e => setSelectedDate(e.target.value)} placeholder="YYYY-MM-DD" className="w-full border p-2 rounded bg-gray-100" />
+              <input 
+                type="text" 
+                value={selectedDate} onChange={e => setSelectedDate(e.target.value)} 
+                placeholder="YYYY-MM-DD" 
+                className="w-full border p-2 rounded bg-gray-100"
+              />
+
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Start Time</label>
-              <input type="time" value={startTime} onChange={e => setStartTime(e.target.value)} required className="w-full border p-2 rounded" />
+              <label className="block text-sm font-medium mb-1">
+                Start Time
+              </label>
+              <input
+                type="time"
+                value={startTime}
+                onChange={(e) => setStartTime(e.target.value)}
+                required
+                className="w-full border p-2 rounded"
+              />
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">End Time</label>
-              <input type="time" value={endTime} onChange={e => setEndTime(e.target.value)} required className="w-full border p-2 rounded" />
+              <input
+                type="time"
+                value={endTime}
+                onChange={(e) => setEndTime(e.target.value)}
+                required
+                className="w-full border p-2 rounded"
+              />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Description</label>
-              <input type="text" value={desc} onChange={e => setDesc(e.target.value)} className="w-full border p-2 rounded" />
+              <label className="block text-sm font-medium mb-1">
+                Description
+              </label>
+              <input
+                type="text"
+                value={desc}
+                onChange={(e) => setDesc(e.target.value)}
+                className="w-full border p-2 rounded"
+              />
             </div>
             <div className="flex gap-2 justify-end">
               <button
@@ -243,12 +290,13 @@ export default function Page() {
                 type="submit"
                 className={`px-4 py-2 rounded text-white ${
                   isLoading
-                    ? 'bg-gray-400 cursor-not-allowed'
-                    : 'bg-pink-500 hover:bg-pink-600'
+
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-pink-500 hover:bg-pink-600"
                 }`}
                 disabled={isLoading}
               >
-                {isLoading ? 'Adding...' : 'Add'}
+                {isLoading ? "Adding..." : "Add"}
               </button>
             </div>
           </form>
