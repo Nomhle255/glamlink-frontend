@@ -1,6 +1,7 @@
+
 "use client";
 import { useState, useEffect } from "react";
-import {
+import { 
   getUserProfileById,
   updateUserProfileById,
   uploadProfilePictureById,
@@ -18,7 +19,7 @@ export default function Profile() {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
-
+  
   // Form fields
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -26,13 +27,16 @@ export default function Profile() {
   const [location, setLocation] = useState("");
   const [profilePic, setProfilePic] = useState<string | null>(null);
   const [paymentMethods, setPaymentMethods] = useState<string[]>([]);
+  const [subscription_plan, setSubscription_plan] = useState("");
+  const countryList = ["Botswana", "Lesotho", "South Africa", "United States"];
+  const [country, setCountry] = useState("");
 
   useEffect(() => {
     const hour = new Date().getHours();
     if (hour < 12) setGreeting("Good morning!");
     else if (hour < 18) setGreeting("Good afternoon!");
     else setGreeting("Good evening!");
-
+    
     // Only fetch profile if user is available and has an ID
     if (user && user.id) {
       fetchProfile();
@@ -43,6 +47,9 @@ export default function Profile() {
   }, [user]);
 
   const fetchProfile = async () => {
+  // Debug: log the API base URL being used
+  // @ts-ignore
+  console.log("API base URL:", require("@/config/api").API_CONFIG.backend);
     if (!user || !user.id) {
       setError("User ID not available. Please log in again.");
       setLoading(false);
@@ -52,19 +59,22 @@ export default function Profile() {
     try {
       setLoading(true);
       setError("");
-
-      // Try to fetch complete user data from backend using user ID
-      const profileData = await getUserProfileById(user.id);
-
-      setProfile(profileData);
-
-      // Set form fields with fetched data
-      setName(profileData.name || "");
-      setEmail(profileData.email || "");
-      setPhoneNumber(profileData.phoneNumber || "");
-      setLocation(profileData.location || "");
-      setProfilePic(profileData.profilePicture || null);
-      setPaymentMethods(profileData.paymentMethods || []);
+      
+    // Try to fetch complete user data from backend using user ID
+    const profileData = await getUserProfileById(user.id);
+    // Debug: log the full profile data
+    console.log("Fetched profile data:", profileData);
+    setProfile(profileData);
+    // Set form fields with fetched data
+    setName(profileData.name || "");
+    setEmail(profileData.email || "");
+    setPhoneNumber(profileData.phoneNumber || ""); 
+    setLocation(profileData.location || "");
+    setProfilePic(profileData.profilePicture || null);
+    setPaymentMethods(profileData.paymentMethods || []);
+    setSubscription_plan(profileData.subscription_plan || "");
+    setCountry(profileData.country || "");
+      
     } catch (err: any) {
       setError(`Unable to load profile data: ${err.message}`);
     } finally {
@@ -74,6 +84,7 @@ export default function Profile() {
 
   // Handle profile picture upload
   const handleProfilePicChange = async (
+    
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
     if (!user || !user.id) {
@@ -83,23 +94,23 @@ export default function Profile() {
 
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-
+      
       // Validate file size (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
         setError("File size must be less than 5MB");
         return;
       }
-
+      
       // Validate file type
       if (!file.type.startsWith("image/")) {
         setError("Please select a valid image file");
         return;
       }
-
+      
       try {
         setUploading(true);
         setError("");
-
+        
         try {
           // Try to upload to backend using user ID
           const profilePictureUrl = await uploadProfilePictureById(
@@ -107,17 +118,15 @@ export default function Profile() {
             file
           );
           setProfilePic(profilePictureUrl);
-
+          
           // Update profile in backend with new picture URL
-          await updateUserProfileById(user.id, {
-            profilePicture: profilePictureUrl,
-          });
-
+          await updateUserProfileById(user.id, { profilePicture: profilePictureUrl });
+          
           setMessage("Profile picture updated successfully!");
         } catch (backendError: any) {
           setError(`Failed to upload profile picture: ${backendError.message}`);
         }
-
+        
         setTimeout(() => setMessage(""), 3000);
       } catch (err: any) {
         setError(err.message);
@@ -127,7 +136,7 @@ export default function Profile() {
     }
   };
 
-  // Save profile changes
+  // Save profile changes 
   const handleSave = async () => {
     if (!user || !user.id) {
       setError("User ID not available. Please log in again.");
@@ -137,24 +146,27 @@ export default function Profile() {
     try {
       setSaving(true);
       setError("");
-
+      
       const updatedProfile = {
         name,
         email,
         phoneNumber,
         location,
         paymentMethods,
+        subscription_plan,
+        country
       };
-
+      
       // Update via backend using user ID
       const result = await updateUserProfileById(user.id, updatedProfile);
-
+      
       setMessage("Profile updated successfully!");
       setShowModal(true);
       setTimeout(() => {
         setMessage("");
         setShowModal(false);
       }, 2000);
+      
     } catch (err: any) {
       setError(`Failed to save profile changes: ${err.message}`);
     } finally {
@@ -177,17 +189,17 @@ export default function Profile() {
     <div className="pb-16 p-4">
       {/* Greeting */}
       <div className="mb-6 p-4 bg-pink-500 rounded shadow text-white">
-        <h2 className="text-lg font-bold">
-          {greeting} {name || "User"}!
-        </h2>
-        <p className="text-white">Update your profile information below.</p>
+        <h2 className="text-lg font-bold">{greeting} {name || "User"}!</h2>
+        <p className="text-white">
+          Update your profile information below.
+        </p>
       </div>
 
       {/* Error Message */}
       {error && (
         <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
           <p>{error}</p>
-          <button
+          <button 
             onClick={() => setError("")}
             className="mt-2 text-sm underline hover:no-underline"
           >
@@ -205,15 +217,11 @@ export default function Profile() {
             alt="Profile"
             className="w-24 h-24 rounded-full object-cover border"
           />
-          <label
-            className={`absolute bottom-0 right-0 bg-pink-500 text-white p-1 rounded-full cursor-pointer hover:bg-pink-600 ${
-              uploading ? "opacity-50" : ""
-            }`}
-          >
-            <input
-              type="file"
-              accept="image/*"
-              className="hidden"
+          <label className={`absolute bottom-0 right-0 bg-pink-500 text-white p-1 rounded-full cursor-pointer hover:bg-pink-600 ${uploading ? "opacity-50" : ""}`}>
+            <input 
+              type="file" 
+              accept="image/*" 
+              className="hidden" 
               onChange={handleProfilePicChange}
               disabled={uploading}
             />
@@ -275,6 +283,39 @@ export default function Profile() {
               placeholder="Enter your location"
             />
           </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
+              Country
+            </label>
+            <select
+              value={country}
+              onChange={e => setCountry(e.target.value)}
+              className="w-full border p-2 rounded focus:outline-none focus:ring-2 focus:ring-pink-300"
+              disabled={saving}
+              required
+            >
+              <option value="">Select Country</option>
+              {countryList.map((c) => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
+              Subscription Plan
+            </label>
+            <select
+              value={subscription_plan}
+              onChange={e => setSubscription_plan(e.target.value)}
+              className="w-full border p-2 rounded focus:outline-none focus:ring-2 focus:ring-pink-300 font-semibold"
+              disabled={saving}
+              required
+            >
+              <option value="">Select Plan</option>
+              <option value="Free">Free</option>
+              <option value="Basic">Basic</option>
+            </select>
+          </div>
         </div>
 
         {/* Update Button */}
@@ -282,8 +323,8 @@ export default function Profile() {
           onClick={handleSave}
           disabled={saving}
           className={`mt-4 w-full px-4 py-2 rounded transition ${
-            saving
-              ? "bg-gray-400 cursor-not-allowed"
+            saving 
+              ? "bg-gray-400 cursor-not-allowed" 
               : "bg-pink-500 hover:bg-pink-600"
           } text-white`}
         >
@@ -298,11 +339,11 @@ export default function Profile() {
           <div className="fixed inset-0 flex items-center justify-center z-50">
             <div className="bg-white border border-green-500 rounded-lg shadow-lg p-6 flex flex-col items-center">
               <span className="text-green-600 text-xl font-bold mb-2">
+                
                 Success!
+                
               </span>
-              <span className="text-gray-700 mb-4">
-                Profile has been updated successfully.
-              </span>
+              <span className="text-gray-700 mb-4">Profile has been updated successfully.</span>
               <button
                 className="bg-pink-500 text-white px-4 py-2 rounded hover:bg-pink-600"
                 onClick={() => setShowModal(false)}
