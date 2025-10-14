@@ -262,20 +262,6 @@ export default function Profile() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700">Subscription Plan</label>
-            <select
-              value={subscription_plan}
-              onChange={e => setSubscription_plan(e.target.value)}
-              className="w-full border p-2 rounded focus:outline-none focus:ring-2 focus:ring-pink-300 font-semibold"
-              disabled={saving}
-              required
-            >
-              <option value="">Select Plan</option>
-              <option value="Free">Free</option>
-              <option value="Basic">Basic</option>
-            </select>
-          </div>
-          <div>
             <label className="block text-sm font-medium text-gray-700">Country</label>
             <select
               value={country}
@@ -288,6 +274,20 @@ export default function Profile() {
               {countryList.map((c) => (
                 <option key={c} value={c}>{c}</option>
               ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Subscription Plan</label>
+            <select
+              value={subscription_plan}
+              onChange={e => setSubscription_plan(e.target.value)}
+              className="w-full border p-2 rounded focus:outline-none focus:ring-2 focus:ring-pink-300 font-semibold"
+              disabled={saving}
+              required
+            >
+              <option value="">Select Plan</option>
+              <option value="Free">Free</option>
+              <option value="Basic">Basic</option>
             </select>
           </div>
         </div>
