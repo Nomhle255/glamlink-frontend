@@ -5,8 +5,8 @@ import {
   getUserProfileById,
   updateUserProfileById,
   uploadProfilePictureById,
-  UserProfile
-} from "@/app/api/profile";
+  UserProfile,
+} from "@/lib/api/profile";
 import { useAuth } from "@/context/AuthContext";
 
 export default function Profile() {
@@ -47,6 +47,9 @@ export default function Profile() {
   }, [user]);
 
   const fetchProfile = async () => {
+  // Debug: log the API base URL being used
+  // @ts-ignore
+  console.log("API base URL:", require("@/config/api").API_CONFIG.backend);
     if (!user || !user.id) {
       setError("User ID not available. Please log in again.");
       setLoading(false);
@@ -57,20 +60,20 @@ export default function Profile() {
       setLoading(true);
       setError("");
       
-      // Try to fetch complete user data from backend using user ID
-      const profileData = await getUserProfileById(user.id);
-      
-      setProfile(profileData);
-      
-  // Set form fields with fetched data
-  setName(profileData.name || "");
-  setEmail(profileData.email || "");
-  setPhoneNumber(profileData.phoneNumber || ""); 
-  setLocation(profileData.location || "");
-  setProfilePic(profileData.profilePicture || null);
-  setPaymentMethods(profileData.paymentMethods || []);
-  setSubscription_plan(profileData.subscription_plan || "");
-  setCountry(profileData.country || "");
+    // Try to fetch complete user data from backend using user ID
+    const profileData = await getUserProfileById(user.id);
+    // Debug: log the full profile data
+    console.log("Fetched profile data:", profileData);
+    setProfile(profileData);
+    // Set form fields with fetched data
+    setName(profileData.name || "");
+    setEmail(profileData.email || "");
+    setPhoneNumber(profileData.phoneNumber || ""); 
+    setLocation(profileData.location || "");
+    setProfilePic(profileData.profilePicture || null);
+    setPaymentMethods(profileData.paymentMethods || []);
+    setSubscription_plan(profileData.subscription_plan || "");
+    setCountry(profileData.country || "");
       
     } catch (err: any) {
       setError(`Unable to load profile data: ${err.message}`);
