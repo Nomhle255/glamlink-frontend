@@ -1,7 +1,12 @@
 
 "use client";
 import { useState, useEffect } from "react";
-import { getUserProfileById, updateUserProfileById, uploadProfilePictureById, UserProfile } from "@/app/api/profile";
+import { 
+  getUserProfileById,
+  updateUserProfileById,
+  uploadProfilePictureById,
+  UserProfile
+} from "@/app/api/profile";
 import { useAuth } from "@/context/AuthContext";
 
 export default function Profile() {
@@ -75,7 +80,10 @@ export default function Profile() {
   };
 
   // Handle profile picture upload
-  const handleProfilePicChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleProfilePicChange = async (
+    
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
     if (!user || !user.id) {
       setError("User ID not available. Please log in again.");
       return;
@@ -91,7 +99,7 @@ export default function Profile() {
       }
       
       // Validate file type
-      if (!file.type.startsWith('image/')) {
+      if (!file.type.startsWith("image/")) {
         setError("Please select a valid image file");
         return;
       }
@@ -102,7 +110,10 @@ export default function Profile() {
         
         try {
           // Try to upload to backend using user ID
-          const profilePictureUrl = await uploadProfilePictureById(user.id, file);
+          const profilePictureUrl = await uploadProfilePictureById(
+            user.id,
+            file
+          );
           setProfilePic(profilePictureUrl);
           
           // Update profile in backend with new picture URL
@@ -175,7 +186,7 @@ export default function Profile() {
     <div className="pb-16 p-4">
       {/* Greeting */}
       <div className="mb-6 p-4 bg-pink-500 rounded shadow text-white">
-        <h2 className="text-lg font-bold">{greeting} {name || 'User'}!</h2>
+        <h2 className="text-lg font-bold">{greeting} {name || "User"}!</h2>
         <p className="text-white">
           Update your profile information below.
         </p>
@@ -203,7 +214,7 @@ export default function Profile() {
             alt="Profile"
             className="w-24 h-24 rounded-full object-cover border"
           />
-          <label className={`absolute bottom-0 right-0 bg-pink-500 text-white p-1 rounded-full cursor-pointer hover:bg-pink-600 ${uploading ? 'opacity-50' : ''}`}>
+          <label className={`absolute bottom-0 right-0 bg-pink-500 text-white p-1 rounded-full cursor-pointer hover:bg-pink-600 ${uploading ? "opacity-50" : ""}`}>
             <input 
               type="file" 
               accept="image/*" 
@@ -211,14 +222,16 @@ export default function Profile() {
               onChange={handleProfilePicChange}
               disabled={uploading}
             />
-            {uploading ? '⏳' : '✎'}
+            {uploading ? "⏳" : "✎"}
           </label>
         </div>
 
         {/* Editable Fields - ENABLED for updates */}
         <div className="w-full flex flex-col gap-3">
           <div>
-            <label className="block text-sm font-medium text-gray-700">Name</label>
+            <label className="block text-sm font-medium text-gray-700">
+              Name
+            </label>
             <input
               type="text"
               value={name}
@@ -229,7 +242,9 @@ export default function Profile() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700">Email</label>
+            <label className="block text-sm font-medium text-gray-700">
+              Email
+            </label>
             <input
               type="email"
               value={email}
@@ -240,7 +255,9 @@ export default function Profile() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700">Phone</label>
+            <label className="block text-sm font-medium text-gray-700">
+              Phone
+            </label>
             <input
               type="text"
               value={phoneNumber}
@@ -251,7 +268,9 @@ export default function Profile() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700">Location</label>
+            <label className="block text-sm font-medium text-gray-700">
+              Location
+            </label>
             <input
               type="text"
               value={location}
@@ -262,7 +281,9 @@ export default function Profile() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700">Country</label>
+            <label className="block text-sm font-medium text-gray-700">
+              Country
+            </label>
             <select
               value={country}
               onChange={e => setCountry(e.target.value)}
@@ -277,7 +298,9 @@ export default function Profile() {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700">Subscription Plan</label>
+            <label className="block text-sm font-medium text-gray-700">
+              Subscription Plan
+            </label>
             <select
               value={subscription_plan}
               onChange={e => setSubscription_plan(e.target.value)}
@@ -298,11 +321,11 @@ export default function Profile() {
           disabled={saving}
           className={`mt-4 w-full px-4 py-2 rounded transition ${
             saving 
-              ? 'bg-gray-400 cursor-not-allowed' 
-              : 'bg-pink-500 hover:bg-pink-600'
+              ? "bg-gray-400 cursor-not-allowed" 
+              : "bg-pink-500 hover:bg-pink-600"
           } text-white`}
         >
-          {saving ? 'Saving...' : 'Save Changes'}
+          {saving ? "Saving..." : "Save Changes"}
         </button>
 
         {/* Success Message */}
@@ -312,7 +335,11 @@ export default function Profile() {
         {showModal && (
           <div className="fixed inset-0 flex items-center justify-center z-50">
             <div className="bg-white border border-green-500 rounded-lg shadow-lg p-6 flex flex-col items-center">
-              <span className="text-green-600 text-xl font-bold mb-2">Success!</span>
+              <span className="text-green-600 text-xl font-bold mb-2">
+                
+                Success!
+                
+              </span>
               <span className="text-gray-700 mb-4">Profile has been updated successfully.</span>
               <button
                 className="bg-pink-500 text-white px-4 py-2 rounded hover:bg-pink-600"
