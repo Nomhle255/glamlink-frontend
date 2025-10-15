@@ -8,7 +8,7 @@ import apiClient from "./client";
 // Profile interface
 export interface UserProfile {
   country: string;
-  subscription_plan: string;
+  subscriptionPlan: string;
   id: string;
   name: string;
   email: string;
