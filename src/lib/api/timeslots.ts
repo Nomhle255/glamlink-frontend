@@ -1,3 +1,23 @@
+// Update a timeslot by ID
+export const updateTimeSlot = async (
+  slotId: string,
+  updateData: Partial<CreateSlotData>
+): Promise<Slot> => {
+  if (!slotId || typeof slotId !== 'string' || slotId.trim() === '') {
+    throw new Error('Invalid or missing timeslot id.');
+  }
+  try {
+  const res = await apiClient.patch(`/timeslots/${slotId.trim()}`, updateData);
+    return res.data;
+  } catch (error: any) {
+    const errorMsg =
+      error?.response?.data?.message ||
+      error?.message ||
+      error?.toString() ||
+      'Failed to update time slot';
+    throw new Error(errorMsg);
+  }
+};
 /**
  * Timeslots API
  * Handles time slot management for stylists
@@ -24,6 +44,7 @@ export interface CreateSlotData {
   endTime: string;
   date: string;
   stylistId: string;
+  description?: string;
 }
 
 export const updateSlotBookedStatus = async (
@@ -177,5 +198,28 @@ export const fetchSlotTimes = async (
     setSlotTimes(newSlotTimes);
   } catch (error) {
     console.error("Failed to fetch slot times", error);
+  }
+};
+
+// Delete a timeslot (no body, no content-type header)
+export const deleteTimeSlot = async (slotId: string): Promise<void> => {
+  if (!slotId || typeof slotId !== 'string' || slotId.trim() === '') {
+    console.error('deleteTimeSlot called with invalid id:', slotId);
+    throw new Error('Invalid or missing timeslot id.');
+  }
+  console.log('Deleting timeslot with id:', slotId);
+  try {
+    await apiClient.delete(`/timeslots/${slotId.trim()}`);
+  } catch (error: any) {
+    // Log the full error object for better debugging
+    console.error('Delete error:', error);
+
+    // Try to extract a meaningful message
+    const errorMsg =
+      error?.response?.data?.message ||
+      error?.message ||
+      error?.toString() ||
+      "Failed to delete time slot";
+    throw new Error(errorMsg);
   }
 };
