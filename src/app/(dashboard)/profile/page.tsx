@@ -27,7 +27,7 @@ export default function Profile() {
   const [location, setLocation] = useState("");
   const [profilePic, setProfilePic] = useState<string | null>(null);
   const [paymentMethods, setPaymentMethods] = useState<string[]>([]);
-  const [subscription_plan, setSubscription_plan] = useState("");
+  const [subscriptionPlan, setSubscriptionPlan] = useState("");
   const countryList = ["Botswana", "Lesotho", "South Africa", "United States"];
   const [country, setCountry] = useState("");
 
@@ -72,7 +72,7 @@ export default function Profile() {
     setLocation(profileData.location || "");
     setProfilePic(profileData.profilePicture || null);
     setPaymentMethods(profileData.paymentMethods || []);
-    setSubscription_plan(profileData.subscription_plan || "");
+    setSubscriptionPlan(profileData.subscriptionPlan || "");
     setCountry(profileData.country || "");
       
     } catch (err: any) {
@@ -153,7 +153,7 @@ export default function Profile() {
         phoneNumber,
         location,
         paymentMethods,
-        subscription_plan,
+        subscriptionPlan,
         country
       };
       
@@ -305,8 +305,8 @@ export default function Profile() {
               Subscription Plan
             </label>
             <select
-              value={subscription_plan}
-              onChange={e => setSubscription_plan(e.target.value)}
+              value={subscriptionPlan}
+              onChange={e => setSubscriptionPlan(e.target.value)}
               className="w-full border p-2 rounded focus:outline-none focus:ring-2 focus:ring-pink-300 font-semibold"
               disabled={saving}
               required
